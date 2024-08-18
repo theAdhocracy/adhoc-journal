@@ -1,6 +1,6 @@
 ---
 import { checkAuth } from "@/utils/auth";
-import { validDateRoute } from "@/utils/dateRoutes";
+import { standardiseDateRoute, validDateRoute } from "@/utils/dateRoutes";
 
 const { year, month, day } = Astro.params;
 
@@ -18,12 +18,38 @@ const isValid = validDateRoute(year, month, day);
 if (!isValid) {
 	return Astro.redirect("/404");
 }
+
+// Standardise date
+const apiDate = standardiseDateRoute(
+	day as string,
+	month as string,
+	year as string
+);
+
+// Fetch page data
+const data = await fetch(
+	`https://cms.theadhocracy.co.uk/journal/${apiDate}.json`,
+	{
+		method: "GET",
+		headers: {
+			"content-type": "application/json",
+			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+		},
+	}
+);
+const response = await data.json();
 ---
 
 {
-	isAuthenticated && (
-		<h1>
-			{year} - {month} - {day}
-		</h1>
+	isAuthenticated && response && (
+		<>
+			<h1>
+				{year} - {month} - {day}
+			</h1>
+
+			<p>{response.title}</p>
+
+			{response.error && <p>Doesn't look like I was very busy today 🤷‍♀️</p>}
+		</>
 	)
 }

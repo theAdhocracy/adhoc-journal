@@ -1,3 +1,9 @@
+// ***************************************
+//
+//   Date Route Validation
+//
+// ***************************************
+
 export const validDateRoute = (year?: string, month?: string, day?: string) => {
 	const validYear = year ? validateYearRoute(year) : true;
 	const validMonth = month ? validateMonthRoute(month) : true;
@@ -117,4 +123,46 @@ const validateDayRoute = (day: string, month?: string, year?: string) => {
 	const isValidFormat = !!day?.match(/^[0-9]{1,2}$/g); // only numeric; 1 or 2 digits
 
 	return isValidFormat && isDayOfMonth;
+};
+
+// ***************************************
+//
+//   Standardised Date Routes
+//
+// ***************************************
+
+export const standardiseDateRoute = (
+	day: string,
+	month: string,
+	year: string
+) => {
+	const standardMonth = standardiseMonth(month);
+	const standardDay = day.length === 1 ? `0${day}` : day;
+
+	return `${year}-${standardMonth}-${standardDay}`;
+};
+
+const standardiseMonth = (month: string) => {
+	const monthOptions: { [key: string]: string[] } = {
+		"01": ["january", "jan", "01", "1"],
+		"02": ["february", "feb", "02", "2"],
+		"03": ["march", "mar", "03", "3"],
+		"04": ["april", "apr", "04", "4"],
+		"05": ["may", "05", "5"],
+		"06": ["june", "jun", "06", "6"],
+		"07": ["july", "jul", "07", "7"],
+		"08": ["august", "aug", "08", "8"],
+		"09": ["september", "sep", "sept", "09", "9"],
+		"10": ["october", "oct", "10"],
+		"11": ["november", "nov", "11"],
+		"12": ["december", "dec", "12"],
+	};
+
+	for (const key in monthOptions) {
+		if (monthOptions[key].includes(month.toLowerCase())) {
+			return key;
+		}
+	}
+
+	return null;
 };
