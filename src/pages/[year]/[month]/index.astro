@@ -1,23 +1,29 @@
 ---
-import { checkAuth } from "@/utils/auth"
+import { checkAuth } from "@/utils/auth";
 import { validDateRoute } from "@/utils/dateRoutes";
 
 const { year, month } = Astro.params;
 
 // Authenticated route
-const isAuthenticated = checkAuth(Astro.cookies.get('auth'));
+const isAuthenticated = checkAuth(Astro.cookies.get("auth"));
 
 if (!isAuthenticated) {
-    const currentPath = Astro.url.pathname;
-    return Astro.redirect(`/login?path=${currentPath}`);
+	const currentPath = Astro.url.pathname;
+	return Astro.redirect(`/login?path=${currentPath}`);
 }
 
 // Validate route
-const isValid = validDateRoute(year, month)
+const isValid = validDateRoute(year, month);
 
 if (!isValid) {
-    return Astro.redirect("/404")
+	return Astro.redirect("/404");
 }
 ---
 
-{ isAuthenticated && <h1>{year} - {month}</h1> }
+{
+	isAuthenticated && (
+		<h1>
+			{year} - {month}
+		</h1>
+	)
+}
