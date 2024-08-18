@@ -17,7 +17,7 @@ const validateYearRoute = (year: string) => {
 }
 
 const validateMonthRoute = (month: string) => {
-    const months = ['january', 'jan', 'february', 'feb', 'march', 'mar', 'april', 'apr', 'may', 'june', 'jun', 'july', 'jul', 'august', 'aug', 'september', 'sep', 'sept', 'october', 'oct', 'november', 'nov', 'december', 'dec'];
+    const months = ['january', 'jan', '01', '1', 'february', 'feb', '02', '2', 'march', 'mar', '03', '3', 'april', 'apr', '04', '4', 'may', '05', '5', 'june', 'jun', '06', '6', 'july', 'jul', '07', '7', 'august', 'aug', '08', '8', 'september', 'sep', 'sept', '09', '9', 'october', 'oct', '10', 'november', 'nov', '11', 'december', 'dec', '12'];
 
     const isValidMonth = months.indexOf(month?.toLowerCase()) > -1 // in the array
 
@@ -28,7 +28,7 @@ const validateDayRoute = (day: string, month?: string, year?: string) => {
     let monthUpperLimit = 31
 
     // Handle months with 30 days (if provided)
-    const has30Days = ['april', 'apr', 'june', 'jun', 'september', 'sept', 'sep', 'november', 'nov'];
+    const has30Days = ['april', 'apr', '04', '4', 'june', 'jun', '06', '6', 'september', 'sept',  'sep', '09', '9', 'november', 'nov', '11'];
 
     const is30Days = month ? has30Days.indexOf(month?.toLowerCase()) > -1 : false
     if (is30Days) {
@@ -36,7 +36,7 @@ const validateDayRoute = (day: string, month?: string, year?: string) => {
     }
 
     // Handle February and leap years (if provided)
-    const hasFebruary = ['february', 'feb']
+    const hasFebruary = ['february', 'feb', '02', '2']
 
     const isFebruary = month ? hasFebruary.indexOf(month?.toLowerCase()) > -1 : false
     const isLeapYear = year ? ((Number(year) % 4 === 0) && (Number(year) % 100 !== 0)) || (Number(year) % 400 === 0) : false; // don't ask 😂
