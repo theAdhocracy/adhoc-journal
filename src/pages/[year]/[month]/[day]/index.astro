@@ -1,0 +1,15 @@
+---
+import { checkAuth } from "@/utils/auth";
+
+const { year, month, day } = Astro.params;
+
+// Authenticated route
+const isAuthenticated = checkAuth(Astro.cookies.get('auth'));
+
+if (!isAuthenticated) {
+    const currentPath = Astro.url.pathname;
+    return Astro.redirect(`/login?path=${currentPath}`);
+}
+---
+
+{ isAuthenticated && <h1>{year} - {month} - {day}</h1> }

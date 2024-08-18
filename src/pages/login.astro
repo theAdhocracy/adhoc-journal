@@ -1,0 +1,57 @@
+---
+const params = new URLSearchParams(Astro.url.searchParams);
+const referrer = params.get("path");
+
+// Handle Form Logic
+const validPassword = import.meta.env.AUTH_PASSWORD;
+const validCode = import.meta.env.AUTH_VALIDATION;
+const errors = { password: "" }
+
+if (Astro.request.method === "POST") {
+  try {
+    // Retrieve form data
+    const data = await Astro.request.formData();
+    const password = data.get("password");
+
+    // Validate form data
+    if (typeof password !== "string" || password.length < 10 || password !== validPassword) {
+        errors.password += "Password is invalid."
+    }
+
+    // Check for validation failures
+    const isInvalid = Object.values(errors).some(msg => msg)
+
+    // Confirm log in
+    if (!isInvalid) {
+        // NOTE: 86400000 is a single day in ms, so this is 90 days
+        const expirationDate = (new Date(Date.now() + 86400000*90))
+
+        Astro.cookies.set("auth", validCode, {
+            expires: expirationDate,
+            sameSite: "strict",
+            httpOnly: true,
+            secure: true
+        })
+
+        return Astro.redirect(referrer || "/")
+    } else {
+        Astro.cookies.delete("auth")
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
+  }
+}
+
+---
+
+<h1>Please Log In</h1>
+<p>You need to log in to view these pages.</p>
+
+<form method="post">
+    <label for="login_password">Password</label>
+    <input type="password" id="login_password" name="password" required minlength="8" >
+    {errors.password && <p>{errors.password}</p>}
+    <button type="submit">Log In</button>
+</form>
