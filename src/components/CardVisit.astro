@@ -1,0 +1,34 @@
+---
+const { data } = Astro.props;
+
+console.log(data);
+---
+
+<aside>
+	<h2>{data.location.title}</h2>
+	<time datetime={`${data.date.date} ${data.date.time}`}>
+		{data.date.time}
+	</time>
+	<p>{data.location.location.location}</p>
+	{
+		data.people && (
+			<p>
+				With{" "}
+				{data.people.map((person: any, index: number) => {
+					return (
+						<span>
+							{index !== 0 && ", "}
+							<a href={`/person/${person.slug}`}>{person.name}</a>
+						</span>
+					);
+				})}
+			</p>
+		)
+	}
+</aside>
+
+<style>
+	aside {
+		padding: 1rem;
+	}
+</style>

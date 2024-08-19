@@ -1,0 +1,39 @@
+---
+const { data } = Astro.props;
+---
+
+<aside>
+	<h2>{data.title}</h2>
+	<time datetime={`${data.duration.start.date} ${data.duration.start.time}`}>
+		{data.duration.start.time}
+	</time>
+	{
+		data.duration.length > 0 && (
+			<time datetime={`${data.duration.end.date} ${data.duration.end.time}`}>
+				{data.duration.end.time}
+			</time>
+		)
+	}
+	<p>{data.location.title}, {data.location.location.location}</p>
+	{
+		data.people && (
+			<p>
+				With{" "}
+				{data.people.map((person: any, index: number) => {
+					return (
+						<span>
+							{index !== 0 && ", "}
+							<a href={`/person/${person.slug}`}>{person.name}</a>
+						</span>
+					);
+				})}
+			</p>
+		)
+	}
+</aside>
+
+<style>
+	aside {
+		padding: 1rem;
+	}
+</style>
