@@ -40,9 +40,9 @@ if (Astro.request.method === "POST") {
 			});
 
 			// Prevents search parameters being copied onto the redirect
-			Astro.url.search = "";
+			Astro.url.search = "?redirect=true";
 
-			return Astro.redirect(`journal${referrer}` || "/journal");
+			return Astro.redirect(`${referrer}` || "/journal");
 		} else {
 			Astro.cookies.delete("auth");
 		}
