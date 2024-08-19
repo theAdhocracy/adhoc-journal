@@ -1,5 +1,12 @@
 ---
+import CardAte from "@/components/CardAte.astro";
+import CardEvent from "@/components/CardEvent.astro";
+import CardTravel from "@/components/CardTravel.astro";
+import CardVisit from "@/components/CardVisit.astro";
+import SpotList from "@/components/SpotList.astro";
+import Layout from "@/layouts/Layout.astro";
 import { checkAuth } from "@/utils/auth";
+import { formatContent } from "@/utils/content";
 import { standardiseDateRoute, validDateRoute } from "@/utils/dateRoutes";
 
 const { year, month, day } = Astro.params;
@@ -15,7 +22,7 @@ if (!isAuthenticated) {
 // Validate route
 const isValid = validDateRoute(year, month, day);
 
-if (!isValid) {
+if (!isValid || !day) {
 	return Astro.redirect("/404");
 }
 
@@ -25,6 +32,11 @@ const apiDate = standardiseDateRoute(
 	month as string,
 	year as string
 );
+const contentDate = new Date(apiDate).toLocaleDateString("en-GB", {
+	day: "numeric",
+	month: "long",
+	year: "numeric",
+});
 
 // Fetch page data
 const data = await fetch(
@@ -38,18 +50,62 @@ const data = await fetch(
 	}
 );
 const response = await data.json();
+
+// Standardise content
+const content = formatContent(response.copy, "journal", response);
 ---
 
-{
-	isAuthenticated && response && (
-		<>
-			<h1>
-				{year} - {month} - {day}
-			</h1>
+<Layout title={apiDate}>
+	{
+		isAuthenticated && response && (
+			<main>
+				<h1>
+					{response.title || "Nothing To See Here"}
+					<time datetime={apiDate}>{contentDate}</time>
+				</h1>
 
-			<p>{response.title}</p>
+				{content.map((block: { type: string; data?: any }) => {
+					switch (block.type) {
+						case "copy":
+							return <Fragment set:html={block.data} />;
+						case "ate":
+							return <CardAte data={block.data} />;
+						case "drank":
+							return <h2>Drink</h2>;
+						case "visit":
+							return <CardVisit data={block.data} />;
+						case "travel":
+							return <CardTravel data={block.data} />;
+						case "event":
+							return <CardEvent data={block.data} />;
+						default:
+							return <Fragment set:html={block} />;
+					}
+				})}
 
-			{response.error && <p>Doesn't look like I was very busy today 🤷‍♀️</p>}
-		</>
-	)
-}
+				{response.footnotes?.map((footnote: any, index: number) => {
+					return (
+						<aside id={`footnote${index + 1}`}>
+							<span>[{index + 1}]</span>
+							<Fragment set:html={footnote} />
+							<a
+								href={`#reference${index + 1}`}
+								title="Return to previous location in article."
+								aria-label="Return to previous location in article."
+							>
+								↬
+							</a>
+						</aside>
+					);
+				})}
+
+				{response.sightings.length > 0 && <h2>Wildlife</h2>}
+				{response.sightings?.map((spotlist: any) => {
+					return <SpotList data={spotlist} />;
+				})}
+
+				{response.error && <p>Doesn't look like I was very busy today 🤷‍♀️</p>}
+			</main>
+		)
+	}
+</Layout>
