@@ -1,0 +1,131 @@
+:root {
+	/* Design Tokens */
+	--font-title: Georgia, Times, Times New Roman, serif;
+	--font-copy: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica,
+		Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+
+	--lavender: #faf8fc;
+	--olivine: #a0c269;
+	--slate: #353535;
+	--lake: #5172a3;
+	--midnight: #1c0118;
+	--dusk: #656565;
+	--dawn: #888888;
+
+	/* Utilities */
+	--c-bg: var(--lavender);
+	--c-text: var(--midnight);
+	--c-text-light: var(--dusk);
+	--c-title: var(--slate);
+	--c-highlight: var(--lake);
+
+	--c-green: var(--olivine);
+	--c-blue: var(--lake);
+
+	--g-blue-green: linear-gradient(
+		90deg,
+		var(--slate) 0%,
+		var(--c-green) 35%,
+		var(--c-blue) 100%
+	);
+}
+
+@media (prefers-color-scheme: dark) {
+	html:not([data-theme="light"]) {
+		--lake: color-mix(in lch, #5172a3, white 30%);
+		--lavender: #cdcdcd;
+
+		--c-bg: var(--midnight);
+		--c-text: var(--lavender);
+		--c-title: var(--olivine);
+		--c-text-light: var(--dawn);
+	}
+
+	a:hover,
+	a:focus-visible {
+		color: var(--c-green);
+	}
+}
+
+html[data-theme="dark"] {
+	--lake: color-mix(in lch, #5172a3, white 30%);
+	--lavender: #cdcdcd;
+
+	--c-bg: var(--midnight);
+	--c-text: var(--lavender);
+	--c-title: var(--olivine);
+	--c-text-light: var(--dawn);
+
+	a:hover,
+	a:focus-visible {
+		color: var(--c-green);
+	}
+}
+
+/* Element Defaults */
+
+@media print {
+	:root {
+		font-size: 14px;
+	}
+
+	p,
+	ul {
+		break-inside: avoid;
+	}
+}
+
+body {
+	background-color: var(--c-bg);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--font-title);
+	font-weight: 200;
+	line-height: 1.2;
+	color: var(--c-title);
+}
+
+:not(h1, h2, h3, h4, h5, h6) {
+	font-family: var(--font-copy);
+	font-size: 1.125rem;
+	line-height: 1.2;
+	color: var(--c-text);
+}
+
+a {
+	position: relative;
+	font-weight: bold;
+	text-decoration-style: wavy;
+	text-underline-offset: 0.2em;
+	color: var(--c-highlight);
+
+	&:hover,
+	&:focus-visible {
+		color: color-mix(in lch, var(--c-green), black 35%);
+		outline: transparent;
+	}
+
+	&:focus-visible::before {
+		content: "➡";
+		position: absolute;
+		left: -2rem;
+		top: 0;
+		filter: hue-rotate(220deg);
+	}
+}
+
+p {
+	max-width: 45em;
+}
+
+dl {
+	max-width: 45ch;
+}
+
+/* Utility Classes */

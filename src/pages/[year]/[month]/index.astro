@@ -1,4 +1,5 @@
 ---
+import Layout from "@/layouts/Layout.astro";
 import { checkAuth } from "@/utils/auth";
 import { validDateRoute } from "@/utils/dateRoutes";
 
@@ -15,15 +16,17 @@ if (!isAuthenticated) {
 // Validate route
 const isValid = validDateRoute(year, month);
 
-if (!isValid) {
+if (!isValid || !month) {
 	return Astro.redirect("/404");
 }
 ---
 
-{
-	isAuthenticated && (
-		<h1>
-			{year} - {month}
-		</h1>
-	)
-}
+<Layout title={month}>
+	{
+		isAuthenticated && (
+			<h1>
+				{year} - {month}
+			</h1>
+		)
+	}
+</Layout>
