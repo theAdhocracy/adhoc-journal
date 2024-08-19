@@ -52,7 +52,10 @@ const data = await fetch(
 const response = await data.json();
 
 // Standardise content
-const content = formatContent(response.copy, "journal", response);
+let content;
+if (!response.error) {
+	content = formatContent(response.copy, "journal", response);
+}
 ---
 
 <Layout title={apiDate}>
@@ -64,7 +67,7 @@ const content = formatContent(response.copy, "journal", response);
 					<time datetime={apiDate}>{contentDate}</time>
 				</h1>
 
-				{content.map((block: { type: string; data?: any }) => {
+				{content?.map((block: { type: string; data?: any }) => {
 					switch (block.type) {
 						case "copy":
 							return <Fragment set:html={block.data} />;
@@ -99,7 +102,7 @@ const content = formatContent(response.copy, "journal", response);
 					);
 				})}
 
-				{response.sightings.length > 0 && <h2>Wildlife</h2>}
+				{response.sightings?.length > 0 && <h2>Wildlife</h2>}
 				{response.sightings?.map((spotlist: any) => {
 					return <SpotList data={spotlist} />;
 				})}
