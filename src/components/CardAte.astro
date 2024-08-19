@@ -1,0 +1,65 @@
+---
+const { data } = Astro.props;
+---
+
+<aside>
+	<h2>{data.location.title}</h2>
+	<time datetime={`${data.date.html} ${data.date.time}`}>{data.date.time}</time>
+	<p>{data.location.location.location}</p>
+	{
+		data.people && (
+			<p>
+				With{" "}
+				{data.people.map((person: any, index: number) => {
+					return (
+						<span>
+							{index !== 0 && ", "}
+							<a href={`/person/${person.slug}`}>{person.name}</a>
+						</span>
+					);
+				})}
+			</p>
+		)
+	}
+
+	<table>
+		<thead>
+			<tr>
+				<td>Key</td>
+				<td>Dish</td>
+				<td>Rating</td>
+				<td>Thoughts</td>
+			</tr>
+		</thead>
+		<tbody>
+			{
+				data.menu.map((dish: any) => {
+					return (
+						<tr>
+							<td>
+								{dish.isShared && <span>Shared</span>}
+								{dish.isAlison && <span>Alison</span>}
+							</td>
+							<td>{dish.title}</td>
+							<td>
+								{dish.rating}
+								{dish.rating && " / 5"}
+							</td>
+							<td>
+								<Fragment set:html={dish.notes} />
+							</td>
+						</tr>
+					);
+				})
+			}
+		</tbody>
+	</table>
+
+	{data.notes && <Fragment set:html={data.notes} />}
+</aside>
+
+<style>
+	aside {
+		padding: 1rem;
+	}
+</style>
