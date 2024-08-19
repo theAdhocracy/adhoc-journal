@@ -22,7 +22,8 @@ if (!isAuthenticated) {
 // Validate route
 const isValid = validDateRoute(year, month, day);
 
-if (!isValid || !day) {
+if (!isValid) {
+	console.log("invalid");
 	return Astro.redirect("/404");
 }
 
@@ -50,12 +51,14 @@ const data = await fetch(
 	}
 );
 const response = await data.json();
+console.log("Response: ", response);
 
 // Standardise content
 let content;
 if (!response.error) {
 	content = formatContent(response.copy, "journal", response);
 }
+console.log("Content: ", content);
 ---
 
 <Layout title={apiDate}>
