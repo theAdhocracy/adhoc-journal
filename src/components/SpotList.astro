@@ -1,0 +1,39 @@
+---
+const { data } = Astro.props;
+---
+
+<aside>
+	<h3>{data.location.title}</h3>
+	<time datetime={`${data.date.date} ${data.date.time}`}>
+		{data.date.time}
+	</time>
+	<p>{data.location.location.location}</p>
+	<table>
+		<thead>
+			<tr>
+				<th>Species Seen</th>
+				<th>Notes</th>
+			</tr>
+		</thead>
+		<tbody>
+			{
+				data.list.map((entry: any) => {
+					return (
+						<tr>
+							<td>
+								<ul role="list">
+									{entry.species.map((species: any) => {
+										return <li>{species.title}</li>;
+									})}
+								</ul>
+							</td>
+							<td>
+								<Fragment set:html={entry.notes} />
+							</td>
+						</tr>
+					);
+				})
+			}
+		</tbody>
+	</table>
+</aside>
