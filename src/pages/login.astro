@@ -39,17 +39,7 @@ if (Astro.request.method === "POST") {
 				secure: true,
 			});
 
-			// Prevents search parameters being copied onto the redirect
-			Astro.url.search = "?redirect=y";
-			console.log(import.meta.env.BASE_URL);
-			console.log(referrer);
-
-			// Necessary Netlify workaround
-			const redirect = referrer?.match(/^\/journal/)
-				? referrer.replace("/journal", "")
-				: referrer;
-
-			return Astro.redirect(`journal${redirect}` || "/journal");
+			return Astro.redirect(`journal${referrer}` || "/journal");
 		} else {
 			Astro.cookies.delete("auth");
 		}
