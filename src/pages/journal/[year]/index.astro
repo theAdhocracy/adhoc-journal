@@ -5,6 +5,9 @@ import { validDateRoute } from "@/utils/dateRoutes";
 
 const { year } = Astro.params;
 
+// Remove redirect cruft
+Astro.url.search = "";
+
 // Authenticated route
 const isAuthenticated = checkAuth(Astro.cookies.get("auth"));
 

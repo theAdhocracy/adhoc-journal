@@ -18,5 +18,4 @@ export default defineConfig({
 	},
 	output: "server",
 	adapter: adapter,
-	base: "/journal",
 });
