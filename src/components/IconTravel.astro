@@ -1,0 +1,106 @@
+---
+const { type } = Astro.props;
+
+let method;
+
+switch (type) {
+	case "bike":
+		method = {
+			icon: "🚴‍♀️",
+			isFlipped: true,
+			alt: "cycled to",
+		};
+		break;
+	case "boat":
+		method = {
+			icon: "⛵",
+			isFlipped: false,
+			alt: "sailed to",
+		};
+		break;
+	case "bus":
+		method = {
+			icon: "🚌",
+			isFlipped: false,
+			alt: "bussed to",
+		};
+		break;
+	case "canoe":
+		method = {
+			icon: "🚣‍♂️",
+			isFlipped: false,
+			alt: "canoed to",
+		};
+		break;
+	case "cableCar":
+		method = {
+			icon: "🚡",
+			isFlipped: false,
+			alt: "cable car to",
+		};
+		break;
+	case "car":
+		method = {
+			icon: "🚗",
+			isFlipped: true,
+			alt: "drove to",
+		};
+		break;
+	case "ferry":
+		method = {
+			icon: "⛴",
+			isFlipped: true,
+			alt: "ferried to",
+		};
+		break;
+	case "plane":
+		method = {
+			icon: "🛫",
+			isFlipped: false,
+			alt: "flew to",
+		};
+		break;
+	case "train":
+		method = {
+			icon: "🚂",
+			isFlipped: true,
+			alt: "train to",
+		};
+		break;
+	case "tram":
+		method = {
+			icon: "🚋",
+			isFlipped: true,
+			alt: "trammed to",
+		};
+		break;
+	case "tube":
+		method = {
+			icon: "🚅",
+			isFlipped: true,
+			alt: "tube to",
+		};
+		break;
+	default:
+		method = {
+			icon: "🚶‍♂️",
+			isFlipped: true,
+			alt: "walked to",
+		};
+}
+---
+
+<span
+	class:list={[{ "u-mirror": method.isFlipped }]}
+	aria-label={method.alt}
+	title={method.alt}
+>
+	{method.icon}
+</span>
+
+<style>
+	.u-mirror {
+		display: inline-block;
+		scale: -1 1;
+	}
+</style>

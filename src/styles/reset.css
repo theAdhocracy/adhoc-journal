@@ -75,13 +75,17 @@ h4 {
 }
 
 ul {
+	--list-gap: 1rem;
+
 	display: flex;
 	flex-direction: column;
-	gap: 1rem;
+	gap: var(--list-gap);
 }
 
 ul[role="list"],
 ol[role="list"] {
+	flex-direction: row;
+	flex-wrap: wrap;
 	list-style: none;
 	padding: 0;
 }

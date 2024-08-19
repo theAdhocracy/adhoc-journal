@@ -1,9 +1,15 @@
 ---
+import IconTravel from "./IconTravel.astro";
+
 const { data } = Astro.props;
+
+// TODO: Handle waypoints and add a map interface
 ---
 
 <aside>
-	<h2>{data.location.title}</h2>
+	<h2>
+		{data.location.title} -> {data.route[data.route.length - 1].location.title}
+	</h2>
 	<time datetime={`${data.date.date} ${data.date.time}`}>
 		{data.date.time}
 	</time>
@@ -23,6 +29,23 @@ const { data } = Astro.props;
 			</p>
 		)
 	}
+	<ul role="list">
+		<li>
+			{data.location.title}
+		</li>
+		{
+			data.route.map((stop: any, index: number) => {
+				if (stop.key !== "location") return;
+
+				return (
+					<li>
+						<IconTravel type={stop.type} />
+						{stop.location.title}
+					</li>
+				);
+			})
+		}
+	</ul>
 </aside>
 
 <style>
