@@ -39,6 +39,9 @@ if (Astro.request.method === "POST") {
 				secure: true,
 			});
 
+			// Prevents search parameters being copied onto the redirect
+			Astro.url.search = "";
+
 			return Astro.redirect(referrer || "/");
 		} else {
 			Astro.cookies.delete("auth");
