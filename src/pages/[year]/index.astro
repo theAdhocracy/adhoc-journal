@@ -10,14 +10,14 @@ const isAuthenticated = checkAuth(Astro.cookies.get("auth"));
 
 if (!isAuthenticated) {
 	const currentPath = Astro.url.pathname;
-	return Astro.redirect(`/login?path=${currentPath}`);
+	return Astro.redirect(`/journal/login?path=${currentPath}`);
 }
 
 // Validate route
 const isValid = validDateRoute(year);
 
 if (!isValid || !year) {
-	return Astro.redirect("/404");
+	return Astro.redirect("/journal/404");
 }
 ---
 
