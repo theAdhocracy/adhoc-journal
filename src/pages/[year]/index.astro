@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { checkAuth } from "@/utils/auth";
+import { sortByMonth } from "@/utils/content";
 import { validDateRoute } from "@/utils/dateRoutes";
 
 const { year } = Astro.params;
@@ -19,6 +20,71 @@ const isValid = validDateRoute(year);
 if (!isValid || !year) {
 	return Astro.redirect("/journal/404");
 }
+
+// Fetch page data
+const data = await fetch(
+	`https://cms.theadhocracy.co.uk/journal/year/${year}.json`,
+	{
+		method: "GET",
+		headers: {
+			"content-type": "application/json",
+			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+		},
+	}
+);
+const response = await data.json();
+
+// Sort into months
+const calendarSort = sortByMonth(response.data);
 ---
 
-<Layout title={year}>{isAuthenticated && <h1>{year}</h1>}</Layout>
+<Layout title={year}
+	>{
+		isAuthenticated && (
+			<>
+				<h1>{year}</h1>
+				{calendarSort.map((month: any) => {
+					const totalDays = month[0].monthTotal;
+
+					return (
+						<>
+							<h2>{month[0].date.monthName}</h2>
+							<ul role="list">
+								{[...Array(totalDays)].map((day, index) => {
+									const normalisedDay =
+										index >= 9 ? index + 1 : `0${index + 1}`;
+
+									// If date has related entry, highlight it
+									const dateEntry = month.find(
+										(entry: any) => entry.date.day === normalisedDay.toString()
+									);
+
+									if (dateEntry) {
+										return (
+											<li>
+												<a
+													href={`/journal/${dateEntry.date.year}/${dateEntry.date.month}/${dateEntry.date.day}`}
+												>
+													{normalisedDay}
+												</a>
+											</li>
+										);
+									}
+
+									return <li>{normalisedDay}</li>;
+								})}
+							</ul>
+							{month.map((day: any) => {
+								return (
+									<article>
+										<h3>{day.title}</h3>
+									</article>
+								);
+							})}
+						</>
+					);
+				})}
+			</>
+		)
+	}</Layout
+>

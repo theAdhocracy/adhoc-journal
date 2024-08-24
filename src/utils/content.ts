@@ -1,3 +1,9 @@
+// ***************************************
+//
+//   Format Journal Content
+//
+// ***************************************
+
 export const formatContent = (raw: string, type: string, data?: any) => {
 	switch (type) {
 		case "journal":
@@ -72,4 +78,25 @@ export const formatContent = (raw: string, type: string, data?: any) => {
 		default:
 			return raw;
 	}
+};
+
+// ***************************************
+//
+//   Sort Entries By Month
+//
+// ***************************************
+
+export const sortByMonth = (data: any) => {
+	const groupedData: { [key: string]: any[] } = {};
+
+	for (const item of data) {
+		const month = item.date.monthName;
+
+		if (!groupedData[month]) {
+			groupedData[month] = [];
+		}
+		groupedData[month].push(item);
+	}
+
+	return Object.values(groupedData);
 };
