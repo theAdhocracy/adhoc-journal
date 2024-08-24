@@ -142,7 +142,7 @@ export const standardiseDateRoute = (
 	return `${year}-${standardMonth}-${standardDay}`;
 };
 
-const standardiseMonth = (month: string) => {
+export const standardiseMonth = (month: string) => {
 	const monthOptions: { [key: string]: string[] } = {
 		"01": ["january", "jan", "01", "1"],
 		"02": ["february", "feb", "02", "2"],

@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { checkAuth } from "@/utils/auth";
-import { validDateRoute } from "@/utils/dateRoutes";
+import { standardiseMonth, validDateRoute } from "@/utils/dateRoutes";
 
 const { year, month } = Astro.params;
 
@@ -19,14 +19,90 @@ const isValid = validDateRoute(year, month);
 if (!isValid || !month) {
 	return Astro.redirect("/journal/404");
 }
+
+// Standardise date
+const date = {
+	month: new Date(
+		Number(year),
+		Number(standardiseMonth(month)) - 1,
+		1
+	).toLocaleString("en-GB", { month: "long" }),
+	year: year,
+};
+
+// Fetch page data
+const data = await fetch(
+	`https://cms.theadhocracy.co.uk/journal/month/${year}-${standardiseMonth(month)}.json`,
+	{
+		method: "GET",
+		headers: {
+			"content-type": "application/json",
+			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+		},
+	}
+);
+const response = await data.json();
+
+// Entry date array
+const daysOfMonth = response.data[0].monthTotal;
 ---
 
 <Layout title={month}>
 	{
 		isAuthenticated && (
-			<h1>
-				{year} - {month}
-			</h1>
+			<>
+				<h1>
+					{date.month} {date.year}
+				</h1>
+				<ul role="list">
+					{[...Array(daysOfMonth)].map((day, index) => {
+						const normalisedDay = index >= 9 ? index + 1 : `0${index + 1}`;
+
+						// If date has related entry, highlight it
+						const dateEntry = response.data.find(
+							(entry: any) => entry.date.day === normalisedDay.toString()
+						);
+
+						if (dateEntry) {
+							return (
+								<li>
+									<a
+										href={`/journal/${dateEntry.date.year}/${dateEntry.date.month}/${dateEntry.date.day}`}
+									>
+										{normalisedDay}
+									</a>
+								</li>
+							);
+						}
+
+						return <li>{normalisedDay}</li>;
+					})}
+				</ul>
+				{response.data.map((entry: any) => {
+					const { ate, drank, title, sightings, checkins, people, date, copy } =
+						entry;
+
+					const url = `${date.year}/${date.month}/${date.day}`;
+					return (
+						<article>
+							<h2>
+								<span>{date.day}</span> {title}
+							</h2>
+							<Fragment set:html={`${copy.substring(0, 150).trim()}...`} />
+							<footer>
+								<a href={`/journal/${url}`}>Read full entry</a>
+								<ul role="list">
+									{checkins > 0 && <li>🗺 {checkins}</li>}
+									{ate > 0 && <li>🍔 {ate}</li>}
+									{drank > 0 && <li>🍺 {drank}</li>}
+									{people > 0 && <li>👪 {people}</li>}
+									{sightings > 0 && <li>🦅 {sightings}</li>}
+								</ul>
+							</footer>
+						</article>
+					);
+				})}
+			</>
 		)
 	}
 </Layout>
