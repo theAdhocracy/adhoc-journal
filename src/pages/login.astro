@@ -39,7 +39,10 @@ if (Astro.request.method === "POST") {
 				secure: true,
 			});
 
-			return Astro.redirect(`/journal${referrer}` || "/journal");
+			// Development environment fix (due to hosting at a subdirectory)
+			const redirect = referrer?.replace(/^\/journal/, "");
+
+			return Astro.redirect(`/journal${redirect}` || "/journal");
 		} else {
 			Astro.cookies.delete("auth");
 		}
