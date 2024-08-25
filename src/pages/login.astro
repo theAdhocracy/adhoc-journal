@@ -39,7 +39,7 @@ if (Astro.request.method === "POST") {
 				secure: true,
 			});
 
-			return Astro.redirect(`journal${referrer}` || "/journal");
+			return Astro.redirect(`/journal${referrer}` || "/journal");
 		} else {
 			Astro.cookies.delete("auth");
 		}
