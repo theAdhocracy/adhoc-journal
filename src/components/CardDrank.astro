@@ -1,0 +1,24 @@
+---
+const { data } = Astro.props;
+---
+
+<aside>
+	<h2>{data.title}</h2>
+	<time datetime={`${data.date.html} ${data.date.time}`}>{data.date.time}</time>
+	<p>
+		{data.location.title}, {data.location.location?.location}
+	</p>
+	<p>{data.type[data.type.length - 1].title} by {data.brewery[0]}</p>
+	<p>{data.rating} / 5</p>
+	<img
+		src={data.image.src}
+		alt={data.image.alt || data.image.desc || `A glass of ${data.title}`}
+	/>
+	{data.notes && <Fragment set:html={data.notes} />}
+</aside>
+
+<style>
+	aside {
+		padding: 1rem;
+	}
+</style>

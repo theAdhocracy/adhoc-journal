@@ -47,6 +47,11 @@ export const formatContent = (raw: string, type: string, data?: any) => {
 									type: "event",
 									data: data.checkins[Number(dataCheck[1]) - 1],
 								};
+							case "drank":
+								return {
+									type: "drank",
+									data: data.food[Number(dataCheck[1]) - 1],
+								};
 							case "travelled" || "traveled":
 								return {
 									type: "travel",
@@ -58,7 +63,7 @@ export const formatContent = (raw: string, type: string, data?: any) => {
 									data: data.checkins[Number(dataCheck[1]) - 1],
 								};
 							default:
-								if (!item || item.length < 1) {
+								if (!item || item.length < 1 || item === " ") {
 									return;
 								}
 
@@ -98,5 +103,5 @@ export const sortByMonth = (data: any) => {
 		groupedData[month].push(item);
 	}
 
-	return Object.values(groupedData);
+	return Object.values(groupedData).reverse();
 };

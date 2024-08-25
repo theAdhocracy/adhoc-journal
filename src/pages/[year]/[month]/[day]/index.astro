@@ -1,5 +1,6 @@
 ---
 import CardAte from "@/components/CardAte.astro";
+import CardDrank from "@/components/CardDrank.astro";
 import CardEvent from "@/components/CardEvent.astro";
 import CardTravel from "@/components/CardTravel.astro";
 import CardVisit from "@/components/CardVisit.astro";
@@ -74,7 +75,7 @@ if (!response.error) {
 						case "ate":
 							return <CardAte data={block.data} />;
 						case "drank":
-							return <h2>Drink</h2>;
+							return <CardDrank data={block.data} />;
 						case "visit":
 							return <CardVisit data={block.data} />;
 						case "travel":
