@@ -7,7 +7,7 @@ const { data } = Astro.props;
 <aside>
 	<h2>{data.location.title}</h2>
 	<time datetime={`${data.date.html} ${data.date.time}`}>{data.date.time}</time>
-	<p>{data.location.location.location}</p>
+	<p>{data.location.location?.location || data.location.title}</p>
 	{
 		data.people && (
 			<p>
