@@ -9,7 +9,7 @@ const { data } = Astro.props;
 	</time>
 	<p>{data.location.location?.location || data.location.title}</p>
 	{
-		data.people && (
+		data.people?.length > 0 && (
 			<p>
 				With{" "}
 				{data.people.map((person: any, index: number) => {
