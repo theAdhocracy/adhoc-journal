@@ -1,39 +1,161 @@
 ---
 const { data } = Astro.props;
+
+const uid = data.date.unix.toString();
+
+// Create a count of each taxonomy
+const allSightings = data.list.flatMap((list: any) => list.species); // flattens all sighting rows into one array
+
+const taxa = allSightings.reduce((count: any, item: any) => {
+	// NOTE: Only handles top-level taxons, not things like "Butterfly"
+	const taxon = item.taxonomy[0].title;
+
+	// Creates a new Set for each taxon found
+	if (!count[taxon]) {
+		count[taxon] = new Set(); // Uses a Set to dedupe results
+	}
+
+	count[taxon].add(item.title);
+	return count;
+}, []);
+
+const taxaTotals = Object.entries(taxa).map(([key, set]) => {
+	let icon = "";
+
+	switch (key) {
+		case "Bird":
+			icon = "🦅";
+			break;
+		case "Mammal":
+			icon = "🦏";
+			break;
+		case "Insect":
+			icon = "🐝";
+			break;
+		case "Amphibian":
+			icon = "🐢";
+			break;
+		default:
+			icon = "⁉";
+	}
+
+	return {
+		icon: icon,
+		name: key,
+		total: (set as Set<[]>).size,
+	};
+});
 ---
 
 <aside>
-	<h3>{data.location.title}</h3>
-	<time datetime={`${data.date.date} ${data.date.time}`}>
-		{data.date.time}
-	</time>
-	<p>{data.location.location?.location || data.location.title}</p>
-	<table>
-		<thead>
-			<tr>
-				<th>Species Seen</th>
-				<th>Notes</th>
-			</tr>
-		</thead>
-		<tbody>
+	<header>
+		<span>📋</span>
+		<time datetime={`${data.date.date} ${data.date.time}`}>
+			{data.date.time}
+		</time>
+		<h3>{data.location.title}</h3>
+		<p>{data.location.location?.location || data.location.title}</p>
+		<ul role="list">
 			{
-				data.list.map((entry: any) => {
+				taxaTotals.map((taxa: any) => {
 					return (
-						<tr>
-							<td>
-								<ul role="list">
-									{entry.species.map((species: any) => {
-										return <li>{species.title}</li>;
-									})}
-								</ul>
-							</td>
-							<td>
-								<Fragment set:html={entry.notes} />
-							</td>
-						</tr>
+						<li>
+							<span aria-label={taxa.name} title={taxa.name}>
+								{taxa.icon}
+							</span>
+							{taxa.total}
+						</li>
 					);
 				})
 			}
-		</tbody>
-	</table>
+		</ul>
+	</header>
+	<div role="region" aria-labelledby={`caption_${uid}`} tabindex="0">
+		<table>
+			<caption id={`caption_${uid}`} class="visually-hidden">
+				Animals that we saw at this location.
+			</caption>
+			<thead>
+				<tr>
+					<th>Species Seen</th>
+					<th>Notes</th>
+				</tr>
+			</thead>
+			<tbody>
+				{
+					data.list.map((entry: any) => {
+						return (
+							<tr>
+								<td>
+									<ul role="list">
+										{entry.species.map((species: any) => {
+											return (
+												<li>
+													<a href={`/sighting/${species.slug}`}>
+														{species.title}
+													</a>
+												</li>
+											);
+										})}
+									</ul>
+								</td>
+								<td class="content">
+									<Fragment set:html={entry.notes} />
+								</td>
+							</tr>
+						);
+					})
+				}
+			</tbody>
+		</table>
+	</div>
 </aside>
+
+<style>
+	aside {
+		max-width: 50em;
+
+		header {
+			max-width: 40rem;
+			margin-inline: auto;
+		}
+
+		div[role="region"] {
+			overflow: auto;
+			margin-block-start: 1rem;
+			padding-block: 1rem;
+
+			&:focus {
+				outline: 0.1em solid slategrey;
+			}
+		}
+
+		& > ul {
+			max-width: max-content;
+		}
+
+		table {
+			min-width: 60ch;
+			text-align: start;
+		}
+
+		td {
+			min-width: 50ch;
+			padding-block: 0.5rem 0.75rem;
+			font-size: 0.8rem;
+		}
+
+		td:nth-child(2) {
+			min-width: 40ch;
+		}
+
+		tr:not(:last-child),
+		thead {
+			border-block-end: 1px solid slategray;
+		}
+
+		tr:not(:last-child) {
+			border-block-end-style: dashed;
+		}
+	}
+</style>

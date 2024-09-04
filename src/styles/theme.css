@@ -12,6 +12,15 @@
 	--dusk: #656565;
 	--dawn: #888888;
 
+	--type--2: clamp(0.7813rem, 0.7769rem + 0.0231vw, 0.8rem);
+	--type--1: clamp(0.9375rem, 0.9231rem + 0.0769vw, 1rem);
+	--type-0: clamp(1.125rem, 1.0962rem + 0.1538vw, 1.25rem);
+	--type-1: clamp(1.35rem, 1.301rem + 0.2615vw, 1.5625rem);
+	--type-2: clamp(1.62rem, 1.5431rem + 0.41vw, 1.9531rem);
+	--type-3: clamp(1.944rem, 1.8292rem + 0.6122vw, 2.4414rem);
+	--type-4: clamp(2.3328rem, 2.1669rem + 0.8849vw, 3.0518rem);
+	--type-5: clamp(2.7994rem, 2.5651rem + 1.2496vw, 3.8147rem);
+
 	/* Utilities */
 	--c-bg: var(--lavender);
 	--c-text: var(--midnight);
@@ -77,6 +86,10 @@ html[data-theme="dark"] {
 
 body {
 	background-color: var(--c-bg);
+	font-family: var(--font-copy);
+	font-size: var(--font-size, --type-0);
+	line-height: 1.7;
+	color: var(--c-text);
 }
 
 h1,
@@ -87,15 +100,26 @@ h5,
 h6 {
 	font-family: var(--font-title);
 	font-weight: 200;
-	line-height: 1.2;
+	line-height: 1.15;
 	color: var(--c-title);
+	font-size: var(--type-1);
+	text-wrap: pretty;
+
+	& :is(time, span:not[class]) {
+		font-size: var(--type--1);
+	}
 }
 
-:not(h1, h2, h3, h4, h5, h6) {
-	font-family: var(--font-copy);
-	font-size: 1.125rem;
-	line-height: 1.2;
-	color: var(--c-text);
+h1 {
+	font-size: var(--type-5);
+}
+
+h2 {
+	font-size: var(--type-3);
+}
+
+h3 {
+	font-size: var(--type-2);
 }
 
 a {
@@ -120,12 +144,19 @@ a {
 	}
 }
 
-p {
-	max-width: 45em;
+th,
+td {
+	padding: 0.25rem 0.5rem;
 }
 
-dl {
-	max-width: 45ch;
+th {
+	text-align: start;
+	font-family: var(--font-title);
+	font-weight: normal;
 }
 
-/* Utility Classes */
+sup,
+sub {
+	font-size: var(--type--2);
+	line-height: 0.5;
+}

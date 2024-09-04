@@ -1,12 +1,19 @@
 ---
+import { getStarRating } from "@/utils/content";
+
 const { data } = Astro.props;
+
+const uid = data.date.unix.toString();
 
 // TODO: Hide any tagged with isAlison
 ---
 
 <aside>
+	<time class="time-divider" datetime={`${data.date.html} ${data.date.time}`}>
+		{data.date.time}
+	</time>
+	<span aria-label="Ate at:">🍔</span>
 	<h2>{data.location.title}</h2>
-	<time datetime={`${data.date.html} ${data.date.time}`}>{data.date.time}</time>
 	<p>{data.location.location?.location || data.location.title}</p>
 	{
 		data.people?.length > 0 && (
@@ -24,44 +31,100 @@ const { data } = Astro.props;
 		)
 	}
 
-	<table>
-		<thead>
-			<tr>
-				<td>Key</td>
-				<td>Dish</td>
-				<td>Rating</td>
-				<td>Thoughts</td>
-			</tr>
-		</thead>
-		<tbody>
-			{
-				data.menu.map((dish: any) => {
-					return (
-						<tr>
-							<td>
-								{dish.isShared && <span>Shared</span>}
-								{dish.isAlison && <span>Alison</span>}
-							</td>
-							<td>{dish.title}</td>
-							<td>
-								{dish.rating}
-								{dish.rating && " / 5"}
-							</td>
-							<td>
-								<Fragment set:html={dish.notes} />
-							</td>
-						</tr>
-					);
-				})
-			}
-		</tbody>
-	</table>
+	<div role="region" aria-labelledby={`caption_${uid}`} tabindex="0">
+		<table>
+			<caption id={`caption_${uid}`} class="visually-hidden"
+				>Dishes that we ate.</caption
+			>
+			<thead class="visually-hidden">
+				<tr>
+					<th>Key</th>
+					<th>Dish</th>
+					<th>Rating</th>
+					<th>Thoughts</th>
+				</tr>
+			</thead>
+			<tbody>
+				{
+					data.menu.map((dish: any) => {
+						const rating = getStarRating(dish.rating);
+						return (
+							<tr>
+								<td>
+									{dish.isShared && (
+										<span class="label" aria-label="Shared" title="Shared">
+											S
+										</span>
+									)}
+									{dish.isAlison && (
+										<span class="label" aria-label="Alison" title="Alison">
+											A
+										</span>
+									)}
+								</td>
+								<td>{dish.title}</td>
+								<td>
+									{dish.rating && (
+										<span aria-label={`${dish.rating} stars out of five.`}>
+											{rating}
+										</span>
+									)}
+								</td>
+								<td>
+									<Fragment set:html={dish.notes} />
+								</td>
+							</tr>
+						);
+					})
+				}
+			</tbody>
+		</table>
+	</div>
 
 	{data.notes && <Fragment set:html={data.notes} />}
 </aside>
 
 <style>
 	aside {
+		max-width: 100dvw;
 		padding: 1rem;
+		text-align: center;
+
+		div[role="region"] {
+			overflow: auto;
+			margin-block-start: 1rem;
+			padding-block: 1rem;
+
+			&:focus {
+				outline: 0.1em solid slategrey;
+			}
+		}
+
+		table {
+			min-width: 60ch;
+			text-align: start;
+			vertical-align: baseline;
+		}
+
+		td:nth-child(2) {
+			min-width: 20ch;
+		}
+
+		td:nth-child(4) {
+			min-width: 40ch;
+			font-size: 0.8rem;
+		}
+
+		.label {
+			display: flex;
+			width: 1.2rem;
+			aspect-ratio: 1 / 1;
+			justify-content: center;
+			margin-top: 0.25em;
+			border: 1px solid slategray;
+			border-radius: 50%;
+			font-size: 0.8rem;
+			line-height: 1.2;
+		}
 	}
 </style>

@@ -62,10 +62,10 @@ if (!response.error) {
 <Layout title={apiDate}>
 	{
 		isAuthenticated && response && (
-			<main>
+			<main class="content">
 				<h1>
-					{response.title || "Nothing To See Here"}
 					<time datetime={apiDate}>{contentDate}</time>
+					{response.title || "Nothing To See Here"}
 				</h1>
 
 				{content?.map((block: { type: string; data?: any }) => {
@@ -87,9 +87,10 @@ if (!response.error) {
 					}
 				})}
 
+				{response.footnotes?.length > 0 && <h2>Footnotes</h2>}
 				{response.footnotes?.map((footnote: any, index: number) => {
 					return (
-						<aside id={`footnote${index + 1}`}>
+						<aside id={`footnote${index + 1}`} class="content | footnote">
 							<span>[{index + 1}]</span>
 							<Fragment set:html={footnote} />
 							<a
@@ -103,7 +104,9 @@ if (!response.error) {
 					);
 				})}
 
-				{response.sightings?.length > 0 && <h2>Wildlife</h2>}
+				{response.sightings?.length > 0 && (
+					<h2 class="spotlist">Wildlife Sightings</h2>
+				)}
 				{response.sightings?.map((spotlist: any) => {
 					return <SpotList data={spotlist} />;
 				})}
@@ -113,3 +116,42 @@ if (!response.error) {
 		)
 	}
 </Layout>
+
+<style>
+	main {
+		max-width: max-content;
+		margin-inline: auto;
+		padding-inline: 1rem;
+		padding-block: 2rem;
+	}
+
+	.spotlist {
+		margin-block-end: 2rem;
+	}
+
+	.footnote {
+		position: relative;
+		max-width: min(100dvw - 6rem, 40em);
+		margin-inline: auto;
+		padding: 0;
+
+		& > span:first-child {
+			position: absolute;
+			left: -2rem;
+		}
+
+		& > a:last-child {
+			position: absolute;
+			top: -0.65rem;
+			right: -2rem;
+		}
+
+		& > * + * {
+			margin-block-start: 1rem;
+		}
+
+		&:target {
+			text-decoration: underline rgb(255, 255, 0) 0.5em;
+		}
+	}
+</style>

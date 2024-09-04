@@ -105,3 +105,23 @@ export const sortByMonth = (data: any) => {
 
 	return Object.values(groupedData).reverse();
 };
+
+// ***************************************
+//
+//   Star Rating
+//
+// ***************************************
+
+export const getStarRating = (number: number, maximum = 5) => {
+	let rating = "";
+
+	for (let i = 1; i <= maximum; i++) {
+		if (i <= number) {
+			rating += "★";
+		} else {
+			rating += "☆";
+		}
+	}
+
+	return rating;
+};

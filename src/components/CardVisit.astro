@@ -3,10 +3,11 @@ const { data } = Astro.props;
 ---
 
 <aside>
-	<h2>{data.location.title}</h2>
-	<time datetime={`${data.date.date} ${data.date.time}`}>
+	<time class="time-divider" datetime={`${data.date.date} ${data.date.time}`}>
 		{data.date.time}
 	</time>
+	<span aria-label="Visited:">📍</span>
+	<h2>{data.location.title}</h2>
 	<p>{data.location.location?.location || data.location.title}</p>
 	{
 		data.people?.length > 0 && (
@@ -28,5 +29,10 @@ const { data } = Astro.props;
 <style>
 	aside {
 		padding: 1rem;
+		text-align: center;
+
+		time {
+			--color: rgb(255, 123, 0);
+		}
 	}
 </style>

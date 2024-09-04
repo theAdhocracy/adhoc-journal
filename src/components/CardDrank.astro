@@ -1,24 +1,62 @@
 ---
+import { getStarRating } from "@/utils/content";
+
 const { data } = Astro.props;
+
+const rating = getStarRating(data.rating);
 ---
 
 <aside>
-	<h2>{data.title}</h2>
-	<time datetime={`${data.date.html} ${data.date.time}`}>{data.date.time}</time>
-	<p>
-		{data.location.title}, {data.location.location?.location}
+	<time class="time-divider" datetime={`${data.date.html} ${data.date.time}`}>
+		{data.date.time}
+	</time>
+	<span aria-label="Drank:">🍺</span>
+	<p
+		aria-label={`${data.rating} out of five stars.`}
+		title={`${data.rating} / 5`}
+	>
+		{rating}
 	</p>
+	<h2>
+		{data.title}
+	</h2>
 	<p>{data.type[data.type.length - 1].title} by {data.brewery[0]}</p>
-	<p>{data.rating} / 5</p>
 	<img
 		src={data.image.src}
 		alt={data.image.alt || data.image.desc || `A glass of ${data.title}`}
 	/>
+	<p>
+		📍 {data.location.title}, {data.location.location?.title}
+	</p>
 	{data.notes && <Fragment set:html={data.notes} />}
 </aside>
 
 <style>
 	aside {
-		padding: 1rem;
+		text-align: center;
+
+		time {
+			--color: rgb(44, 170, 253);
+		}
+
+		time + p {
+			margin-block-start: 0.5em;
+		}
+
+		h2 {
+			margin-block: 0.15rem;
+		}
+
+		h2 ~ p {
+			margin-inline: auto;
+			font-style: italic;
+			font-size: 0.9rem;
+		}
+
+		img {
+			min-width: calc(100% + 2rem);
+			margin-block: 1rem;
+			margin-inline: -1rem;
+		}
 	}
 </style>

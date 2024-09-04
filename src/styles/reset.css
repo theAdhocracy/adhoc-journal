@@ -20,6 +20,7 @@ body {
 	min-height: 100vh;
 	line-height: 1.5;
 	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 body:has(dialog[open]) {
@@ -45,6 +46,10 @@ select {
 
 button {
 	cursor: pointer;
+}
+
+table {
+	border-collapse: collapse;
 }
 
 p,

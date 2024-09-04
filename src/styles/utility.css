@@ -1,0 +1,192 @@
+/*********************/
+/***               ***/
+/***    LAYOUTS    ***/
+/***               ***/
+/*********************/
+
+.stack {
+	--stack-gap: 1rem;
+
+	display: flex;
+	flex-direction: column;
+	gap: var(--stack-gap);
+}
+
+.flow {
+	--flow-gap: 1rem;
+
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--flow-gap);
+}
+
+.grid {
+	--grid-gap: 1rem;
+
+	display: grid;
+	grid-template-columns: auto;
+	gap: var(--grid-gap);
+}
+
+.content {
+	--gap: 1em;
+
+	display: block;
+
+	& > :is(h1, h2, h3, h4, h5, h6) {
+		--gap: 1.5em;
+
+		width: 100%;
+		max-width: 20ch;
+		min-width: min(95dvw, 40rem);
+		margin-inline: auto;
+
+		& + * {
+			--gap: 0.5em;
+		}
+	}
+
+	h1 {
+		display: flex;
+		flex-direction: column;
+		max-width: 40rem;
+	}
+
+	& > hr,
+	& > hr + *,
+	& > h1 + * {
+		--gap: 2.5rem;
+	}
+
+	& > *:not(aside, h1, h2, h3, h4, h5, h6) {
+		max-width: 40rem;
+		margin-inline: auto;
+	}
+
+	& > aside {
+		max-width: 50em;
+		margin-inline: auto;
+	}
+}
+
+.content > * + * {
+	margin-block-start: var(--gap);
+}
+
+/*********************/
+/***               ***/
+/***    UTILITY    ***/
+/***               ***/
+/*********************/
+
+.visually-hidden {
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	height: 1px;
+	overflow: hidden;
+	position: absolute;
+	white-space: nowrap;
+	width: 1px;
+}
+
+:has(> .center) {
+	position: relative;
+}
+
+.center {
+	display: block;
+	height: max-content;
+	width: max-content;
+	margin-inline: auto;
+	place-self: center;
+
+	position: absolute;
+	inset: 50%;
+	translate: -50% -50%;
+}
+
+.time-divider {
+	--color: green;
+	--thickness: 0.5em;
+
+	position: relative;
+	display: flex;
+	max-width: max-content;
+	margin-block-end: 1rem;
+	margin-inline: auto;
+	padding: 0.5em;
+	aspect-ratio: 1 / 1;
+	align-items: center;
+	border: double var(--thickness) transparent;
+	border-radius: 50%;
+	background-image: linear-gradient(white, white),
+		linear-gradient(
+			to bottom,
+			transparent 0%,
+			transparent 52%,
+			var(--color) 52%,
+			var(--color) 100%
+		);
+	background-origin: border-box;
+	background-clip: padding-box, border-box;
+
+	&::before {
+		content: "";
+		display: block;
+		position: absolute;
+		z-index: -1;
+		height: 0.5em;
+		width: 100dvw;
+		background-color: var(--color);
+		inset: 50%;
+		translate: -50dvw;
+	}
+
+	&::after {
+		content: "";
+		display: block;
+		position: absolute;
+		z-index: -1;
+		height: 50%;
+		width: 100dvw;
+		inset-inline: 50%;
+		inset-block-end: calc(var(--thickness) * -1);
+		translate: -50dvw;
+		background-image: repeating-linear-gradient(
+			45deg,
+			transparent,
+			transparent 1px,
+			slategray 1px 2px,
+			transparent 3px 5px
+		);
+		clip-path: polygon(
+			0.73% 67.79%,
+			5.48% 57.94%,
+			10.51% 82.29%,
+			14.97% 63.79%,
+			21.16% 72.65%,
+			24.7% 91.22%,
+			29.73% 57%,
+			33.76% 63.79%,
+			38.94% 46.3%,
+			44.48% 50.22%,
+			48.73% 64.79%,
+			52.21% 57.86%,
+			56.27% 77.29%,
+			61.3% 77.29%,
+			65.97% 55.93%,
+			68.94% 65.79%,
+			73% 70.72%,
+			77.73% 79.36%,
+			82.27% 59.79%,
+			87.73% 60.86%,
+			93% 67.79%,
+			96.73% 82.29%,
+			100% 94%,
+			100% 0%,
+			0% 0%
+		);
+		mask: linear-gradient(to bottom, white, transparent) top / 100% 75%
+			no-repeat;
+	}
+}

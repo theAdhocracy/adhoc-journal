@@ -7,13 +7,15 @@ const { data } = Astro.props;
 ---
 
 <aside>
-	<h2>
-		{data.location.title} -> {data.route[data.route.length - 1].location.title}
-	</h2>
-	<time datetime={`${data.date.date} ${data.date.time}`}>
+	<time class="time-divider" datetime={`${data.date.date} ${data.date.time}`}>
 		{data.date.time}
 	</time>
-	<p>{data.location.location?.location || data.location.title}</p>
+	<span aria-label="Travelled:" title="Travelled">🗺</span>
+	<h2>
+		{data.location.title}
+		<span class="interstitial">to</span>
+		{data.route[data.route.length - 1].location.title}
+	</h2>
 	{
 		data.people?.length > 0 && (
 			<p>
@@ -38,7 +40,7 @@ const { data } = Astro.props;
 				if (stop.key !== "location") return;
 
 				return (
-					<li>
+					<li role="listitem">
 						<IconTravel type={stop.type} />
 						{stop.location.title}
 					</li>
@@ -51,5 +53,27 @@ const { data } = Astro.props;
 <style>
 	aside {
 		padding: 1rem;
+		text-align: center;
+
+		time {
+			--color: rgb(255, 208, 0);
+		}
+
+		ul {
+			max-width: max-content;
+			margin-block-start: 1rem;
+			margin-inline: auto;
+		}
+
+		li[role="listitem"] {
+			display: flex;
+			gap: 1rem;
+		}
+
+		.interstitial {
+			margin-inline-start: 0.1em;
+			font-style: italic;
+			font-size: var(--type-1);
+		}
 	}
 </style>

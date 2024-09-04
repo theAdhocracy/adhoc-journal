@@ -1,5 +1,6 @@
 ---
 import "@/styles/reset.css";
+import "@/styles/utility.css";
 import "@/styles/theme.css";
 
 interface Props {
@@ -23,6 +24,36 @@ const { title } = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body>
+		<header>
+			<nav>
+				<ul role="list">
+					<li><a href="/">Home</a></li>
+					<li><a href="/journal">Journal</a></li>
+				</ul>
+			</nav>
+		</header>
 		<slot />
+		<footer>
+			<p class="center">Built By <a href="/">theAdhocracy</a></p>
+		</footer>
 	</body>
 </html>
+
+<style>
+	body {
+	}
+
+	header {
+		min-height: 10rem;
+		padding: 1rem;
+
+		border-block-end: 0.5rem solid rebeccapurple;
+	}
+
+	footer {
+		min-height: 10rem;
+		padding: 1rem;
+
+		border-block-start: 0.5rem solid rebeccapurple;
+	}
+</style>
