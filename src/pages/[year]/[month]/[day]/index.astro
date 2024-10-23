@@ -23,7 +23,7 @@ if (!isAuthenticated) {
 // Validate route
 const isValid = validDateRoute(year, month, day);
 
-if (!isValid || !day) {
+if (!isValid || !day || !month || !year) {
 	return Astro.redirect("/journal/404");
 }
 
@@ -57,12 +57,39 @@ let content;
 if (!response.error) {
 	content = formatContent(response.copy, "journal", response);
 }
+
+// Breadcrumb navigation
+const currDate = new Date(apiDate);
+const nextDay = new Date(currDate.setDate(currDate.getDate() + 1));
+const prevDay = new Date(currDate.setDate(currDate.getDate() - 2)); // NOTE: -2 as we increment date by 1 in prior statement
+
+// NOTE: months must be incremented to account for 0-index in JS
+const nextCrumb = `${nextDay.getFullYear()}/${nextDay.getMonth() + 1}/${nextDay.getDate()}`;
+const prevCrumb = `${prevDay.getFullYear()}/${prevDay.getMonth() + 1}/${prevDay.getDate()}`;
+
+// Readable month
+const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
+	month: "long",
+});
 ---
 
 <Layout title={apiDate}>
 	{
 		isAuthenticated && response && (
 			<main class="content">
+				<nav class="crumbs" aria-label="Breadcrumb">
+					<a href={`/journal/${prevCrumb}`}>
+						<span aria-hidden="true">⬅</span> Prev
+					</a>
+					<span aria-hidden="true">/</span>
+					<a href={`/journal/${year}`}>{year}</a>
+					<span aria-hidden="true">/</span>
+					<a href={`/journal/${year}/${month}`}>{currMonth}</a>
+					<span aria-hidden="true">/</span>
+					<a href={`/journal/${nextCrumb}`}>
+						Next <span aria-hidden="true">➡</span>
+					</a>
+				</nav>
 				<h1>
 					<time datetime={apiDate}>{contentDate}</time>
 					{response.title || "Nothing To See Here"}

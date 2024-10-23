@@ -54,6 +54,11 @@ calendarSort.forEach((month) => {
 		friends += day.people;
 	});
 });
+
+// Breadcrumb navigation
+const currYear = Number(year);
+const nextYear = currYear + 1;
+const prevYear = currYear - 1;
 ---
 
 <Layout title={year}
@@ -61,6 +66,15 @@ calendarSort.forEach((month) => {
 		isAuthenticated && (
 			<main>
 				<header>
+					<nav class="crumbs" aria-label="Breadcrumb">
+						<a href={`/journal/${prevYear}`}>
+							<span aria-hidden="true">⬅</span> Prev
+						</a>
+						<span aria-hidden="true"> / </span>
+						<a href={`/journal/${nextYear}`}>
+							Next <span aria-hidden="true">➡</span>
+						</a>
+					</nav>
 					<h1>{year}</h1>
 					<section class="stats">
 						<h2>Total Stats</h2>
@@ -78,7 +92,7 @@ calendarSort.forEach((month) => {
 							</dt>
 							<dd>{food}</dd>
 							<dt aria-label="Drinks tried." title="Drinks Tried">
-								🍻
+								🍺
 							</dt>
 							<dd>{drink}</dd>
 							<dt aria-label="Friends seen." title="Friends Seen">
@@ -189,6 +203,12 @@ calendarSort.forEach((month) => {
 			width: 100%;
 			text-align: center;
 		}
+	}
+
+	.crumbs {
+		--block-gap: 0;
+
+		place-content: center;
 	}
 
 	.stats {

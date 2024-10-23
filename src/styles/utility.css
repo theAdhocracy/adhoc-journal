@@ -190,3 +190,17 @@
 			no-repeat;
 	}
 }
+
+.crumbs {
+	--block-gap: -3rem;
+
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	margin-block-end: var(--block-gap);
+
+	& a:first-child,
+	& a:last-child {
+		text-decoration: none;
+	}
+}
