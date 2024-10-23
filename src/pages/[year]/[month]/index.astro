@@ -3,6 +3,10 @@ import Layout from "@/layouts/Layout.astro";
 import { checkAuth } from "@/utils/auth";
 import { standardiseMonth, validDateRoute } from "@/utils/dateRoutes";
 
+// ISR cache
+Astro.response.headers.set("Cache-Control", "public, max-age=86,400, s-maxage=2,592,000");
+
+// Route parameters
 const { year, month } = Astro.params;
 
 // Authenticated route

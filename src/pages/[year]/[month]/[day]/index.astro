@@ -10,6 +10,13 @@ import { checkAuth } from "@/utils/auth";
 import { formatContent } from "@/utils/content";
 import { standardiseDateRoute, validDateRoute } from "@/utils/dateRoutes";
 
+// ISR cache
+Astro.response.headers.set(
+	"Cache-Control",
+	"public, max-age=86,400, s-maxage=2,592,000"
+);
+
+// Route parameters
 const { year, month, day } = Astro.params;
 
 // Authenticated route
