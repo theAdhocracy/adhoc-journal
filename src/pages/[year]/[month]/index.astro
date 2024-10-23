@@ -44,17 +44,33 @@ const data = await fetch(
 const response = await data.json();
 
 // Entry date array
-const daysOfMonth = response.data[0].monthTotal;
+const daysOfMonth = response.data[0]?.monthTotal;
+
+// Breadcrumb navigation
+const currMonth = new Date(Number(date.year), Number(standardiseMonth(month)) - 1, 1);
+const nextMonth = new Date(currMonth.getFullYear(), currMonth.getMonth() + 1, 1);
+const prevMonth = new Date(currMonth.getFullYear(), currMonth.getMonth() - 1, 1);
+
+// NOTE: months must be incremented to account for 0-index in JS
+const nextCrumb = `${nextMonth.getFullYear()}/${nextMonth.getMonth() + 1}`
+const prevCrumb = `${prevMonth.getFullYear()}/${prevMonth.getMonth() + 1}`
 ---
 
-<Layout title={month}>
+<Layout title={`${date.month} ${date.year}`}>
 	{
 		isAuthenticated && (
-			<>
+			<main>
+				<nav class="crumbs" aria-label="Breadcrumb">
+					<a href={`/journal/${prevCrumb}`}><span aria-hidden="true">⬅</span> Prev</a>
+					<span aria-hidden="true">/</span>
+					<a href={`/journal/${date.year}`}>{date.year}</a>
+					<span aria-hidden="true">/</span>
+					<a href={`/journal/${nextCrumb}`}>Next <span aria-hidden="true">➡</span></a>
+				</nav>
 				<h1>
 					{date.month} {date.year}
 				</h1>
-				<ul role="list">
+				{daysOfMonth && <ul role="list" class="timeline">
 					{[...Array(daysOfMonth)].map((day, index) => {
 						const normalisedDay = index >= 9 ? index + 1 : `0${index + 1}`;
 
@@ -64,45 +80,191 @@ const daysOfMonth = response.data[0].monthTotal;
 						);
 
 						if (dateEntry) {
+							const {
+								ate,
+								drank,
+								title,
+								sightings,
+								checkins,
+								people,
+								date,
+								copy,
+							} = dateEntry;
+
+							const url = `${date.year}/${date.month}/${date.day}`;
+
 							return (
 								<li>
-									<a
-										href={`/journal/${dateEntry.date.year}/${dateEntry.date.month}/${dateEntry.date.day}`}
-									>
-										{normalisedDay}
-									</a>
+									<p>{normalisedDay}</p>
+									<article>
+										<a href={`/journal/${url}`}>
+											<h2>{title}</h2>
+										</a>
+										{copy !== null && (
+											<Fragment
+												set:html={copy}
+											/>
+										)}
+										<footer>
+											<dl>
+												{checkins > 0 && <dt aria-label="Places visited." title="Places Visited">
+													🗺
+												</dt>
+												<dd>{checkins}</dd>}
+												{ate > 0 && <dt aria-label="Meals out." title="Meals Out">
+													🍽
+												</dt>
+												<dd>{ate}</dd>}
+												{drank > 0 && <dt aria-label="Drinks tried." title="Drinks Tried">
+													🍺
+												</dt>
+												<dd>{drank}</dd>}
+												{people > 0 && <dt aria-label="Friends seen." title="Friends Seen">
+													👪
+												</dt>
+												<dd>{people}</dd>}
+												{sightings > 0 && <dt aria-label="Animals seen." title="Animals Seen">
+													🦅
+												</dt>
+												<dd>{sightings}</dd>}
+											</dl>
+										</footer>
+									</article>
 								</li>
 							);
 						}
 
-						return <li>{normalisedDay}</li>;
+						return (
+							<li data-empty="true">
+								<p>{normalisedDay}</p>
+							</li>
+						);
 					})}
-				</ul>
-				{response.data.map((entry: any) => {
-					const { ate, drank, title, sightings, checkins, people, date, copy } =
-						entry;
-
-					const url = `${date.year}/${date.month}/${date.day}`;
-					return (
-						<article>
-							<h2>
-								<span>{date.day}</span> {title}
-							</h2>
-							<Fragment set:html={`${copy.substring(0, 150).trim()}...`} />
-							<footer>
-								<a href={`/journal/${url}`}>Read full entry</a>
-								<ul role="list">
-									{checkins > 0 && <li>🗺 {checkins}</li>}
-									{ate > 0 && <li>🍔 {ate}</li>}
-									{drank > 0 && <li>🍺 {drank}</li>}
-									{people > 0 && <li>👪 {people}</li>}
-									{sightings > 0 && <li>🦅 {sightings}</li>}
-								</ul>
-							</footer>
-						</article>
-					);
-				})}
-			</>
+				</ul>}
+				{!daysOfMonth && <p>Looks like nothing of interest happened during this period, sorry. Have a dinosaur instead: 🦕</p>}
+			</main>
 		)
 	}
 </Layout>
+
+<style>
+	main {
+		display: flex;
+		flex-direction: column;
+		gap: 4rem;
+		padding-block: 2rem 3rem;
+		padding-inline: 1.5rem;
+		place-content: center;
+		place-items: center;
+
+		& h1 {
+			width: 100%;
+			text-align: center;
+		}
+	}
+
+	.timeline {
+		display: block;
+		column-count: 3;
+		column-rule: 2px solid var(--c-blue);
+		column-width: 30rem;
+		column-gap: 2rem;
+
+		flex-direction: column;
+		border-inline-start: 2px solid var(--c-highlight);
+		padding-inline: 1rem;
+
+		& article {
+			max-width: 45ch;
+		}
+
+		& h2 {
+			margin-block-end: 0.25rem;
+			font-size: 1.5rem;
+		}
+
+		& footer > dl {
+			display: flex;
+			flex-wrap: wrap;
+			margin-block-start: 0.5rem;
+			gap: 0.25rem;
+
+			& dd + dt {
+				margin-inline-start: 0.75rem;
+			}
+		}
+
+		& > li {
+			position: relative;
+			display: flex;
+			gap: 2rem;
+			break-inside: avoid;
+
+			& > p:has(+ article) {
+				color: var(--c-highlight);
+				font-weight: bold;
+			}
+
+			& > p:not(:has(+ article)) {
+				color: lightgray;
+			}
+
+			&::after {
+				content: "";
+				position: absolute;
+				left: -1rem;
+				top: 0.75rem;
+				display: block;
+				height: 0.25rem;
+				width: 0.5rem;
+				background-color: var(--c-highlight);
+			}
+		}
+
+		& > li:has(article) + li:has(article) {
+			margin-block-start: 2rem;
+		}
+
+		/* Hide adjacent empty dates */
+		& > li[data-empty] + li:not(:has(a), :has(+ li a)) {
+			display: none;
+		}
+
+		/* Replace hidden content with ellipses (...) */
+		&
+			> li[data-empty]
+			+ li[data-empty]
+			+ li:not(:has(+ li[data-empty]), :has(a)) {
+			&::before {
+				content: "…";
+				display: block;
+				margin-block: 0 -0.55rem; /* used for vertical alignment */
+				margin-inline-start: 0.15rem;
+				color: lightgray;
+			}
+
+			&::after {
+				top: 3rem;
+			}
+
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+		}
+
+		/* Handle multi column */
+		max-width: 30rem;
+
+		@media (width > 1250px) {
+			max-width: 65rem;
+		}
+
+		@media (width > 1600px) {
+			max-width: 100dvw;
+		}
+
+		@media (width > 1850px) {
+			column-width: 35rem;
+		}
+	}
+</style>

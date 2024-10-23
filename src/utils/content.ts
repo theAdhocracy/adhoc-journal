@@ -103,7 +103,7 @@ export const sortByMonth = (data: any) => {
 		groupedData[month].push(item);
 	}
 
-	return Object.values(groupedData).reverse();
+	return Object.values(groupedData);
 };
 
 // ***************************************
