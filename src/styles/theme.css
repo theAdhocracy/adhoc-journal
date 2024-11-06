@@ -3,6 +3,9 @@
 	--font-title: Georgia, Times, Times New Roman, serif;
 	--font-copy: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica,
 		Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+	--font-emoji: "Segoe UI Emoji", "Twemoji Mozilla", "Apple Color Emoji",
+		"Segoe UI Symbol", "Noto Color Emoji", "EmojiOne Color", "Android Emoji",
+		sans-serif;
 
 	--lavender: #faf8fc;
 	--olivine: #a0c269;
