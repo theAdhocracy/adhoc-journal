@@ -1,0 +1,296 @@
+---
+type Props = {
+	data: any;
+	children?: any[];
+	title: string;
+	type: string;
+	hasFilters?: boolean;
+	isSearchResults?: boolean;
+};
+
+const { data, children, title, type, hasFilters, isSearchResults } =
+	Astro.props;
+
+const { lat, long, zoom = 5, uri } = data;
+
+// Determine what map filters are valid
+const filters = {
+	pub: false,
+	nature: false,
+	food: false,
+	misc: false,
+};
+
+children?.forEach((child: any) =>
+	child.type.forEach((type: string) => {
+		switch (type) {
+			case "pub":
+				filters.pub = true;
+				break;
+			case "restaurant":
+				filters.food = true;
+				break;
+			case "park":
+			case "nature":
+				filters.nature = true;
+				break;
+			default:
+				filters.misc = true;
+		}
+	})
+);
+
+const hasFilterContent =
+	hasFilters && Object.values(filters).some((value) => value === true);
+---
+
+{
+	hasFilterContent && (
+		<fieldset>
+			<legend>Filter Locations:</legend>
+			{filters.pub && (
+				<>
+					<label for="togglePubs">🍺 Pubs: </label>
+					<input type="checkbox" id="togglePubs" name="pub" checked />
+				</>
+			)}
+			{filters.nature && (
+				<>
+					<label for="toggleNature">🌲 Nature: </label>
+					<input type="checkbox" id="toggleNature" name="nature|park" checked />
+				</>
+			)}
+			{filters.food && (
+				<>
+					<label for="toggleFood">🍔 Food: </label>
+					<input type="checkbox" id="toggleFood" name="restaurant" checked />
+				</>
+			)}
+			{filters.misc && (
+				<>
+					<label for="toggleMisc">🗺 Misc: </label>
+					<input type="checkbox" id="toggleMisc" name="child" checked />
+				</>
+			)}
+		</fieldset>
+	)
+}
+<div id="map" aria-hidden="true">
+	<p id="copyright">
+		&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>
+	</p>
+</div>
+
+<script
+	define:vars={{ lat, long, zoom, children, title, uri, type, isSearchResults }}
+	data-astro-rerun
+>
+	// Initialise the map
+	var map = L.map("map", {
+		attributionControl: false,
+		zoomControl: false,
+		doubleClickZoom: true,
+		scrollWheelZoom: false,
+	}).setView([lat, long], zoom);
+
+	// Tile set to use
+	L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+		maxZoom: 18,
+		attribution:
+			'&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+	}).addTo(map);
+
+	// Markers to use, based on location type
+	const Pin = (type, isChild, title, uri, isSearchResults) => {
+		let icon = "";
+		let colour = "blueviolet";
+		let offset = [28, 44];
+		let key = type;
+
+		switch (type) {
+			case "restaurant":
+				icon = "🍔";
+				colour = "deeppink";
+				break;
+			case "park":
+			case "nature":
+				icon = "🌲";
+				offset = [32, 45];
+				colour = "darkgreen";
+				break;
+			case "pub":
+				icon = "🍺";
+				offset = [31.5, 45.5];
+				colour = "chocolate";
+				break;
+			default:
+				icon = isChild ? "🗺" : "⭐";
+				colour = isChild ? "steelblue" : "blueviolet";
+				key = "child";
+		}
+
+		// Generate marker HTML (child locations have pop-outs)
+		const html =
+			isChild || isSearchResults
+				? `<details name="marker"><summary><svg viewbox="0 0 100 100" height="50" width="50" color="${colour}">
+				<path d="M 17,35 83,35 52,95 Q 50,97 48,95 Z" fill="currentColor" />
+				<circle cx="50" cy="35" r="30" fill="white" stroke="currentColor"stroke-width="10" />
+				<text dx="${offset[0]}" dy="${offset[1]}" font-size="2rem">${icon}</text>
+				</svg></summary><div class="content"><a href="/journal/${uri}">${title}</a></div></details>`
+				: `<svg viewbox="0 0 100 100" height="50" width="50" color="${colour}">
+				<path d="M 17,35 83,35 52,95 Q 50,97 48,95 Z" fill="currentColor" />
+				<circle cx="50" cy="35" r="30" fill="white" stroke="currentColor"stroke-width="10" />
+				<text dx="${offset[0]}" dy="${offset[1]}" font-size="2rem">${icon}</text>
+				</svg>`;
+
+		return L.divIcon({
+			html: html,
+			className:
+				isChild || isSearchResults ? `marker-interactive marker-${key}` : "", // only set class for child locations
+			iconSize: [45, 45],
+			iconAnchor: [20, 50],
+			popupAnchor: [2.5, -40],
+		});
+	};
+
+	// Create location marker
+	L.marker([lat, long], {
+		icon: Pin(type, false, title, uri, isSearchResults),
+		interactive: false,
+		keyboard: false,
+	})
+		.addTo(map)
+		._icon.classList.add("marker");
+
+	// Child location markers, with popups that contain links
+	if (children) {
+		var markers = new L.featureGroup(
+			children.map((location) => {
+				if (!location.lat) return;
+
+				return L.marker([location.lat, location.long], {
+					icon: Pin(location.type[0], true, location.title, location.uri),
+					interactive: false,
+					keyboard: false,
+				}).addTo(map);
+			})
+		);
+
+		// Add a faux-marker to group, purely for calculation purposes
+		markers.addLayer(L.marker([lat, long]));
+
+		// Update zoom level based on marker position; ensures all markers are visible, but also centers on main marker
+		map.fitBounds(markers.getBounds()).setView([lat, long]);
+	}
+</script>
+
+<script define:vars={{ hasFilters }} data-astro-rerun>
+	// Do nothing if filters aren't enabled
+	if (!hasFilters) return;
+
+	// Function: Controls map marker filters
+	// Select all checkbox filters
+	const controls = document.querySelectorAll(
+		"fieldset > input[type='checkbox']"
+	);
+
+	// Assign event listeners
+	controls.forEach((control) =>
+		control.addEventListener("change", (event) => {
+			// Derive relevant markers based on name attribute (uses | for multiple options)
+			const selector = event.target.name
+				.split("|")
+				.map((key) => `.marker-${key}`)
+				.join(", ");
+			const markers = document.querySelectorAll(selector);
+
+			// Toggle hidden state
+			if (event.target.checked) {
+				markers.forEach((marker) => marker.classList.remove("hide-marker"));
+			} else {
+				markers.forEach((marker) => marker.classList.add("hide-marker"));
+			}
+		})
+	);
+</script>
+
+<style>
+	#map {
+		height: clamp(15rem, 36vw, 30rem);
+		filter: saturate(50%) hue-rotate(10deg) brightness(110%);
+		position: relative;
+		z-index: 1;
+	}
+
+	:global(.leaflet-marker-icon) {
+		font-family: var(--font-emoji);
+	}
+
+	:global(.marker) {
+		z-index: 640 !important; /* ensures top search result is visible */
+	}
+
+	:global(.marker-interactive:has(details[open])) {
+		z-index: 999 !important; /* jumps the selected marker to the front, preventing overlap */
+	}
+
+	:global(.marker-interactive) {
+		pointer-events: all;
+	}
+
+	:global(.marker-interactive details) {
+		position: relative;
+		width: 3rem;
+	}
+
+	:global(.marker-interactive details .content) {
+		position: absolute;
+		top: -4rem;
+		left: 50%;
+		width: max-content;
+		padding: 1rem;
+		border: 2px solid black;
+		border-radius: 0.5rem;
+		background-color: white;
+		transform: translate(-50%, 0);
+		z-index: 650;
+	}
+
+	:global(.marker-interactive .content::after) {
+		content: "";
+		display: block;
+		position: absolute;
+		bottom: -0.35rem;
+		left: 50%;
+		width: 0.5rem;
+		height: 0.5rem;
+		background-color: black;
+		translate: -50% 0;
+		rotate: 45deg;
+	}
+
+	:global(.marker-interactive summary) {
+		list-style-type: none;
+	}
+
+	:global(.hide-marker) {
+		display: none;
+	}
+
+	#copyright {
+		font-size: var(--font-sm);
+		text-align: right;
+		color: var(--colour-lagoon);
+		margin: 0;
+		z-index: 999;
+		position: absolute;
+		bottom: 0.5rem;
+		right: 1rem;
+	}
+
+	#copyright a {
+		font-size: var(--font-sm);
+		color: var(--colour-lagoon);
+		text-decoration: none;
+	}
+</style>
