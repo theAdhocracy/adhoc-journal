@@ -21,7 +21,7 @@ switch (type) {
 	case "bus":
 		method = {
 			icon: "🚌",
-			isFlipped: false,
+			isFlipped: true,
 			alt: "bussed to",
 		};
 		break;
@@ -58,6 +58,13 @@ switch (type) {
 			icon: "🛫",
 			isFlipped: false,
 			alt: "flew to",
+		};
+		break;
+	case "taxi":
+		method = {
+			icon: "🚕",
+			isFlipped: true,
+			alt: "taxied to",
 		};
 		break;
 	case "train":

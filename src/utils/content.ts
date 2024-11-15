@@ -35,7 +35,6 @@ export const formatContent = (raw: string, type: string, data?: any) => {
 					} else {
 						const dataCheck = item.replace(/\s/g, "").split("|");
 
-						// TODO: Add drank once I can meaningfully extract that data
 						switch (dataCheck[0]) {
 							case "ate":
 								return {
@@ -52,7 +51,8 @@ export const formatContent = (raw: string, type: string, data?: any) => {
 									type: "drank",
 									data: data.food[Number(dataCheck[1]) - 1],
 								};
-							case "travelled" || "traveled":
+							case "travelled":
+							case "traveled":
 								return {
 									type: "travel",
 									data: data.checkins[Number(dataCheck[1]) - 1],
