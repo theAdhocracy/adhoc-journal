@@ -35,7 +35,7 @@ const date = {
 };
 
 // Fetch page data
-const data = await fetch(
+const api = await fetch(
 	`https://cms.theadhocracy.co.uk/journal/month/${year}-${standardiseMonth(month)}.json`,
 	{
 		method: "GET",
@@ -45,10 +45,11 @@ const data = await fetch(
 		},
 	}
 );
-const response = await data.json();
+const response = await api.json();
+const { data } = response;
 
 // Entry date array
-const daysOfMonth = response.data[0]?.monthTotal;
+const daysOfMonth = data?.[0]?.monthTotal;
 
 // Breadcrumb navigation
 const currMonth = new Date(Number(date.year), Number(standardiseMonth(month)) - 1, 1);
@@ -79,7 +80,7 @@ const prevCrumb = `${prevMonth.getFullYear()}/${prevMonth.getMonth() + 1}`
 						const normalisedDay = index >= 9 ? index + 1 : `0${index + 1}`;
 
 						// If date has related entry, highlight it
-						const dateEntry = response.data.find(
+						const dateEntry = data.find(
 							(entry: any) => entry.date.day === normalisedDay.toString()
 						);
 
