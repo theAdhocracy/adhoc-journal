@@ -74,13 +74,21 @@ if (!response.error) {
 }
 
 // Breadcrumb navigation
-const currDate = new Date(apiDate);
-const nextDay = new Date(currDate.setDate(currDate.getDate() + 1));
-const prevDay = new Date(currDate.setDate(currDate.getDate() - 2)); // NOTE: -2 as we increment date by 1 in prior statement
+let nextCrumb;
+let prevCrumb;
 
-// NOTE: months must be incremented to account for 0-index in JS
-const nextCrumb = `${nextDay.getFullYear()}/${nextDay.getMonth() + 1}/${nextDay.getDate()}`;
-const prevCrumb = `${prevDay.getFullYear()}/${prevDay.getMonth() + 1}/${prevDay.getDate()}`;
+if (!response.error) {
+	nextCrumb = response.pagination.next;
+	prevCrumb = response.pagination.prev;
+} else {
+	const currDate = new Date(apiDate);
+	const nextDay = new Date(currDate.setDate(currDate.getDate() + 1));
+	const prevDay = new Date(currDate.setDate(currDate.getDate() - 2)); // NOTE: -2 as we increment date by 1 in prior statement
+
+	// NOTE: months must be incremented to account for 0-index in JS
+	nextCrumb = `/journal/${nextDay.getFullYear()}/${nextDay.getMonth() + 1}/${nextDay.getDate()}`;
+	prevCrumb = `/journal/${prevDay.getFullYear()}/${prevDay.getMonth() + 1}/${prevDay.getDate()}`;
+}
 
 // Readable month
 const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
@@ -93,7 +101,7 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 		isAuthenticated && response && (
 			<main class="content">
 				<nav class="crumbs" aria-label="Breadcrumb">
-					<a href={`/journal/${prevCrumb}`}>
+					<a href={`${prevCrumb}`}>
 						<span aria-hidden="true">⬅</span> Prev
 					</a>
 					<span aria-hidden="true">/</span>
@@ -101,7 +109,7 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 					<span aria-hidden="true">/</span>
 					<a href={`/journal/${year}/${month}`}>{currMonth}</a>
 					<span aria-hidden="true">/</span>
-					<a href={`/journal/${nextCrumb}`}>
+					<a href={`${nextCrumb}`}>
 						Next <span aria-hidden="true">➡</span>
 					</a>
 				</nav>
