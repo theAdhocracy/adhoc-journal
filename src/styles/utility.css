@@ -203,6 +203,11 @@
 	& a:last-child {
 		text-decoration: none;
 	}
+
+	& strong:first-child,
+	& strong:last-child {
+		color: grey;
+	}
 }
 
 s.redacted {

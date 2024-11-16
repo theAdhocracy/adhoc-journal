@@ -1,49 +1,51 @@
 ---
-const { data } = Astro.props;
+import Redacted from "@/components/Redacted.astro";
+import StatsList from "@/fragments/StatsList.astro";
+
+const { data, auth = 0 } = Astro.props;
 
 const uid = data.date.unix.toString();
 
 // Create a count of each taxonomy
 const allSightings = data.list.flatMap((list: any) => list.species); // flattens all sighting rows into one array
 
-const taxa = allSightings.reduce((count: any, item: any) => {
+const taxaTotals = {
+	amphibian: 0,
+	bird: 0,
+	insect: 0,
+	fish: 0,
+	mammal: 0,
+	reptile: 0,
+	misc: 0,
+};
+
+allSightings.forEach((critter: any) => {
 	// NOTE: Only handles top-level taxons, not things like "Butterfly"
-	const taxon = item.taxonomy[0].title;
+	const taxon = critter.taxonomy[0].slug;
 
-	// Creates a new Set for each taxon found
-	if (!count[taxon]) {
-		count[taxon] = new Set(); // Uses a Set to dedupe results
-	}
-
-	count[taxon].add(item.title);
-	return count;
-}, []);
-
-const taxaTotals = Object.entries(taxa).map(([key, set]) => {
-	let icon = "";
-
-	switch (key) {
-		case "Bird":
-			icon = "🦅";
+	// TODO: I was deduping this using the slug and a Set(); not necessary?
+	switch (taxon) {
+		case "amphibian":
+			taxaTotals["amphibian"]++;
 			break;
-		case "Mammal":
-			icon = "🦏";
+		case "bird":
+			taxaTotals["bird"]++;
 			break;
-		case "Insect":
-			icon = "🐝";
+		case "insect":
+			taxaTotals["insect"]++;
 			break;
-		case "Amphibian":
-			icon = "🐢";
+		case "fish":
+			taxaTotals["fish"]++;
+			break;
+		case "mammal":
+			taxaTotals["mammal"]++;
+			break;
+		case "reptile":
+			taxaTotals["reptile"]++;
 			break;
 		default:
-			icon = "⁉";
+			taxaTotals["misc"]++;
 	}
-
-	return {
-		icon: icon,
-		name: key,
-		total: (set as Set<[]>).size,
-	};
 });
 ---
 
@@ -55,20 +57,7 @@ const taxaTotals = Object.entries(taxa).map(([key, set]) => {
 		</time>
 		<h3>{data.location.title}</h3>
 		<p>{data.location.location?.location || data.location.title}</p>
-		<ul role="list">
-			{
-				taxaTotals.map((taxa: any) => {
-					return (
-						<li>
-							<span aria-label={taxa.name} title={taxa.name}>
-								{taxa.icon}
-							</span>
-							{taxa.total}
-						</li>
-					);
-				})
-			}
-		</ul>
+		<StatsList spotlist={taxaTotals} />
 	</header>
 	<div role="region" aria-labelledby={`caption_${uid}`} tabindex="0">
 		<table>
@@ -100,7 +89,7 @@ const taxaTotals = Object.entries(taxa).map(([key, set]) => {
 									</ul>
 								</td>
 								<td class="content">
-									<Fragment set:html={entry.notes} />
+									<Redacted data={entry.notes} auth={auth} />
 								</td>
 							</tr>
 						);

@@ -53,7 +53,7 @@ const hasFilterContent =
 			{filters.pub && (
 				<>
 					<label for="togglePubs">🍺 Pubs: </label>
-					<input type="checkbox" id="togglePubs" name="pub" checked />
+					<input type="checkbox" id="togglePubs" name="pub|bar" checked />
 				</>
 			)}
 			{filters.nature && (
@@ -65,7 +65,12 @@ const hasFilterContent =
 			{filters.food && (
 				<>
 					<label for="toggleFood">🍔 Food: </label>
-					<input type="checkbox" id="toggleFood" name="restaurant" checked />
+					<input
+						type="checkbox"
+						id="toggleFood"
+						name="restaurant|bakery|takeaway"
+						checked
+					/>
 				</>
 			)}
 			{filters.misc && (

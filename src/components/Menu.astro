@@ -1,11 +1,10 @@
 ---
+import Redacted from "@/components/Redacted.astro";
 import { getStarRating } from "@/utils/content";
 
-const { data } = Astro.props;
+const { data, auth = 0 } = Astro.props;
 
-const uid = data.date.unix.toString();
-
-// TODO: Hide any tagged with isAlison
+const uid = Math.random().toString().replace("0.", "");
 ---
 
 <div role="region" aria-labelledby={`caption_${uid}`} tabindex="0">
@@ -23,8 +22,12 @@ const uid = data.date.unix.toString();
 		</thead>
 		<tbody>
 			{
-				data.menu.map((dish: any) => {
+				data.map((dish: any) => {
 					const rating = getStarRating(dish.rating);
+
+					// Hide certain food if not authed
+					if (dish.isAlison && auth < 2) return;
+
 					return (
 						<tr>
 							<td>
@@ -48,7 +51,7 @@ const uid = data.date.unix.toString();
 								)}
 							</td>
 							<td>
-								<Fragment set:html={dish.notes} />
+								<Redacted data={dish.notes} auth={auth} />
 							</td>
 						</tr>
 					);

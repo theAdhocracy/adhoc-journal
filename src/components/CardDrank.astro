@@ -1,7 +1,8 @@
 ---
+import Redacted from "@/components/Redacted.astro";
 import { getStarRating } from "@/utils/content";
 
-const { data } = Astro.props;
+const { data, auth = 0 } = Astro.props;
 
 const rating = getStarRating(data.rating);
 ---
@@ -28,7 +29,7 @@ const rating = getStarRating(data.rating);
 	<p>
 		📍 {data.location.title}, {data.location.location?.title}
 	</p>
-	{data.notes && <Fragment set:html={data.notes} />}
+	{data.notes && <Redacted data={data.notes} auth={auth} />}
 </aside>
 
 <style>

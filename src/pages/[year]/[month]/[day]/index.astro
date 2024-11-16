@@ -1,4 +1,5 @@
 ---
+import Layout from "@/layouts/Layout.astro";
 import CardAte from "@/components/CardAte.astro";
 import CardDrank from "@/components/CardDrank.astro";
 import CardEvent from "@/components/CardEvent.astro";
@@ -6,7 +7,6 @@ import CardTravel from "@/components/CardTravel.astro";
 import CardVisit from "@/components/CardVisit.astro";
 import Redacted from "@/components/Redacted.astro";
 import SpotList from "@/components/SpotList.astro";
-import Layout from "@/layouts/Layout.astro";
 import { checkAuth } from "@/utils/auth";
 import { formatContent } from "@/utils/content";
 import { standardiseDateRoute, validDateRoute } from "@/utils/dateRoutes";
@@ -101,17 +101,23 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 		isAuthenticated && response && (
 			<main class="content">
 				<nav class="crumbs" aria-label="Breadcrumb">
-					<a href={`${prevCrumb}`}>
-						<span aria-hidden="true">⬅</span> Prev
-					</a>
+					{!prevCrumb && <strong>Past</strong>}
+					{prevCrumb && (
+						<a href={`${prevCrumb}`}>
+							<span aria-hidden="true">⬅</span> Prev
+						</a>
+					)}
 					<span aria-hidden="true">/</span>
 					<a href={`/journal/${year}`}>{year}</a>
 					<span aria-hidden="true">/</span>
 					<a href={`/journal/${year}/${month}`}>{currMonth}</a>
 					<span aria-hidden="true">/</span>
-					<a href={`${nextCrumb}`}>
-						Next <span aria-hidden="true">➡</span>
-					</a>
+					{nextCrumb && (
+						<a href={`${nextCrumb}`}>
+							Next <span aria-hidden="true">➡</span>
+						</a>
+					)}
+					{!nextCrumb && <strong>Future</strong>}
 				</nav>
 				<h1>
 					<time datetime={apiDate}>{contentDate}</time>
@@ -158,7 +164,7 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 					<h2 class="spotlist">Wildlife Sightings</h2>
 				)}
 				{response.sightings?.map((spotlist: any) => {
-					return <SpotList data={spotlist} />;
+					return <SpotList data={spotlist} auth={authLevel} />;
 				})}
 
 				{response.error && <p>Doesn't look like I was very busy today 🤷‍♀️</p>}

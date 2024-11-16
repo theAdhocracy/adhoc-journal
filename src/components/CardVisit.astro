@@ -1,4 +1,6 @@
 ---
+import People from "@/fragments/People.astro";
+
 const { data, auth = 0 } = Astro.props;
 ---
 
@@ -12,23 +14,7 @@ const { data, auth = 0 } = Astro.props;
 		>
 	</h2>
 	<p>{data.location.location?.location || data.location.title}</p>
-	{
-		data.people?.length > 0 && (
-			<p>
-				with{" "}
-				{auth === 2 &&
-					data.people.map((person: any, index: number) => {
-						return (
-							<span>
-								{index !== 0 && ", "}
-								<a href={`/person/${person.slug}`}>{person.name}</a>
-							</span>
-						);
-					})}
-				{auth < 2 && ` ${data.people.length} people`}
-			</p>
-		)
-	}
+	<People data={data.people} auth={auth} />
 </aside>
 
 <style>
