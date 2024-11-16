@@ -1,4 +1,5 @@
 ---
+import StatsList from "@/fragments/StatsList.astro";
 import Layout from "@/layouts/Layout.astro";
 import { checkAuth } from "@/utils/auth";
 import { sortByMonth } from "@/utils/content";
@@ -85,28 +86,15 @@ const prevYear = currYear - 1;
 					<h1>{year}</h1>
 					<section class="stats">
 						<h2>Total Stats</h2>
-						<dl>
-							<dt aria-label="Events." title="Events">
-								📋
-							</dt>
-							<dd>{entries}</dd>
-							<dt aria-label="Places visited." title="Places Visited">
-								🗺
-							</dt>
-							<dd>{checkins}</dd>
-							<dt aria-label="Meals out." title="Meals Out">
-								🍽
-							</dt>
-							<dd>{food}</dd>
-							<dt aria-label="Drinks tried." title="Drinks Tried">
-								🍺
-							</dt>
-							<dd>{drink}</dd>
-							<dt aria-label="Friends seen." title="Friends Seen">
-								👪
-							</dt>
-							<dd>{friends}</dd>
-						</dl>
+						<StatsList
+							data={{
+								total: entries,
+								checkins: checkins,
+								ate: food,
+								drank: drink,
+								people: friends,
+							}}
+						/>
 					</section>
 				</header>
 				<section class="calendar">
@@ -219,6 +207,9 @@ const prevYear = currYear - 1;
 	}
 
 	.stats {
+		display: flex;
+		flex-direction: column;
+		place-items: center;
 		margin-block-start: 2rem;
 		text-align: center;
 
@@ -226,16 +217,6 @@ const prevYear = currYear - 1;
 			margin-block-end: 1rem;
 			font-family: var(--font-copy);
 			font-size: 1rem;
-		}
-
-		& dl {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.5rem;
-
-			& dd + dt {
-				margin-inline-start: 0.5rem;
-			}
 		}
 	}
 

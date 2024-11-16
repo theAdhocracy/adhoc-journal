@@ -1,0 +1,184 @@
+---
+const { data = {}, spotlist = {} } = Astro.props;
+
+const {
+	total = 0,
+	checkins = 0,
+	ate = 0,
+	drank = 0,
+	people = 0,
+	events = 0,
+	sightings = 0,
+} = data;
+
+const {
+	amphibian = 0,
+	bird = 0,
+	insect = 0,
+	fish = 0,
+	mammal = 0,
+	reptile = 0,
+	misc = 0,
+} = spotlist;
+
+const datapoints = [
+	{
+		icon: "📋",
+		aria: "Total checkins.",
+		tooltip: "Total Checkins",
+		value: total,
+		isValid: total > 0,
+	},
+	{
+		icon: "🗺",
+		aria: "Places visited.",
+		tooltip: "Places Visited",
+		value: checkins,
+		isValid: checkins > 0,
+	},
+	{
+		icon: "🍽",
+		aria: "Meals out.",
+		tooltip: "Meals Out",
+		value: ate,
+		isValid: ate > 0,
+	},
+	{
+		icon: "🍺",
+		aria: "Drinks tried.",
+		tooltip: "Drinks Tried",
+		value: drank,
+		isValid: drank > 0,
+	},
+	{
+		icon: "🎟",
+		aria: "Events attended.",
+		tooltip: "Events Attended",
+		value: events,
+		isValid: events > 0,
+	},
+	{
+		icon: "👪",
+		aria: "Friends seen.",
+		tooltip: "Friends Seen",
+		value: people,
+		isValid: people > 0,
+	},
+	{
+		icon: "🦅",
+		aria: "Animals seen.",
+		tooltip: "Animals Seen",
+		value: sightings,
+		isValid: sightings > 0,
+	},
+];
+
+const taxa = [
+	{
+		icon: "🐢",
+		aria: "Amphibians",
+		tooltip: "Amphibians",
+		value: amphibian,
+		isValid: amphibian > 0,
+	},
+	{
+		icon: "🦅",
+		aria: "Birds",
+		tooltip: "Birds",
+		value: bird,
+		isValid: bird > 0,
+	},
+	{
+		icon: "🦋",
+		aria: "Insects",
+		tooltip: "Insects",
+		value: insect,
+		isValid: insect > 0,
+	},
+	{
+		icon: "🐟",
+		aria: "Fishes",
+		tooltip: "Fishes",
+		value: fish,
+		isValid: fish > 0,
+	},
+	{
+		icon: "🦏",
+		aria: "Mammals",
+		tooltip: "Mammals",
+		value: mammal,
+		isValid: mammal > 0,
+	},
+	{
+		icon: "🦎",
+		aria: "Reptiles",
+		tooltip: "Reptiles",
+		value: reptile,
+		isValid: reptile > 0,
+	},
+	{
+		icon: "🐙",
+		aria: "Other",
+		tooltip: "Other",
+		value: misc,
+		isValid: misc > 0,
+	},
+];
+
+// Validate that some data was received
+const hasData =
+	data && total + checkins + ate + drank + people + events + sightings > 0;
+const hasSightings =
+	spotlist && amphibian + bird + insect + fish + mammal + reptile + misc > 0;
+---
+
+{
+	hasData && (
+		<dl>
+			{datapoints.map((datum) => {
+				if (!datum.isValid) return null;
+
+				return (
+					<>
+						<dt aria-label={datum.aria} title={datum.tooltip}>
+							{datum.icon}
+						</dt>
+						<dd>{datum.value}</dd>
+					</>
+				);
+			})}
+		</dl>
+	)
+}
+
+{
+	hasSightings && (
+		<dl>
+			{taxa.map((taxon) => {
+				if (!taxon.isValid) return null;
+
+				return (
+					<>
+						<dt aria-label={taxon.aria} title={taxon.tooltip}>
+							{taxon.icon}
+						</dt>
+						<dd>{taxon.value}</dd>
+					</>
+				);
+			})}
+		</dl>
+	)
+}
+
+<style>
+	dl {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+		max-width: max-content;
+
+		& dd + dt {
+			margin-inline-start: 0.75rem;
+		}
+	}
+</style>

@@ -181,8 +181,9 @@ const hasFilterContent =
 		// Add a faux-marker to group, purely for calculation purposes
 		markers.addLayer(L.marker([lat, long]));
 
-		// Update zoom level based on marker position; ensures all markers are visible, but also centers on main marker
-		map.fitBounds(markers.getBounds()).setView([lat, long]);
+		// Update zoom level based on marker position; ensures all markers are visible, but also centers horizontally on main marker
+		const bounds = markers.getBounds();
+		map.fitBounds(bounds).setView([bounds.getCenter().lat, long]);
 	}
 </script>
 
