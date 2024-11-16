@@ -1,0 +1,15 @@
+---
+type Props = {
+	data: {
+		raw: any;
+		redacted: any;
+	};
+	auth?: number;
+};
+
+const { data, auth = 0 } = Astro.props;
+---
+
+{auth === 0 && <Fragment set:html={data.redacted} />}
+{auth === 1 && <Fragment set:html={data.redacted} />}
+{auth === 2 && <Fragment set:html={data.raw} />}

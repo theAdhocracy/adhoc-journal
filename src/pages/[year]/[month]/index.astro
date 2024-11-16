@@ -1,4 +1,5 @@
 ---
+import Redacted from "@/components/Redacted.astro";
 import Layout from "@/layouts/Layout.astro";
 import { checkAuth } from "@/utils/auth";
 import { standardiseMonth, validDateRoute } from "@/utils/dateRoutes";
@@ -10,11 +11,14 @@ Astro.response.headers.set("Cache-Control", "public, max-age=86,400, s-maxage=2,
 const { year, month } = Astro.params;
 
 // Authenticated route
+let authLevel = 0;
 const isAuthenticated = checkAuth(Astro.cookies.get("auth"));
 
 if (!isAuthenticated) {
 	const currentPath = Astro.url.pathname;
 	return Astro.redirect(`/journal/login?path=${currentPath}`);
+} else {
+	authLevel = 2;
 }
 
 // Validate route
@@ -106,8 +110,9 @@ const prevCrumb = `${prevMonth.getFullYear()}/${prevMonth.getMonth() + 1}`
 											<h2>{title}</h2>
 										</a>
 										{copy !== null && (
-											<Fragment
-												set:html={copy}
+											<Redacted
+												data={copy}
+												auth={authLevel}
 											/>
 										)}
 										<footer>

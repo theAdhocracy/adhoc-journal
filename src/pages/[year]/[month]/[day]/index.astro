@@ -4,6 +4,7 @@ import CardDrank from "@/components/CardDrank.astro";
 import CardEvent from "@/components/CardEvent.astro";
 import CardTravel from "@/components/CardTravel.astro";
 import CardVisit from "@/components/CardVisit.astro";
+import Redacted from "@/components/Redacted.astro";
 import SpotList from "@/components/SpotList.astro";
 import Layout from "@/layouts/Layout.astro";
 import { checkAuth } from "@/utils/auth";
@@ -20,11 +21,14 @@ Astro.response.headers.set(
 const { year, month, day } = Astro.params;
 
 // Authenticated route
+let authLevel = 0;
 const isAuthenticated = checkAuth(Astro.cookies.get("auth"));
 
 if (!isAuthenticated) {
 	const currentPath = Astro.url.pathname;
 	return Astro.redirect(`/journal/login?path=${currentPath}`);
+} else {
+	authLevel = 2;
 }
 
 // Validate route
@@ -62,7 +66,11 @@ const response = await data.json();
 // Standardise content
 let content;
 if (!response.error) {
-	content = formatContent(response.copy, "journal", response);
+	if (authLevel === 2) {
+		content = formatContent(response.copy.raw, "journal", response);
+	} else {
+		content = formatContent(response.copy.redacted, "journal", response);
+	}
 }
 
 // Breadcrumb navigation
@@ -107,15 +115,15 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 						case "copy":
 							return <Fragment set:html={block.data} />;
 						case "ate":
-							return <CardAte data={block.data} />;
+							return <CardAte data={block.data} auth={authLevel} />;
 						case "drank":
-							return <CardDrank data={block.data} />;
+							return <CardDrank data={block.data} auth={authLevel} />;
 						case "visit":
-							return <CardVisit data={block.data} />;
+							return <CardVisit data={block.data} auth={authLevel} />;
 						case "travel":
-							return <CardTravel data={block.data} />;
+							return <CardTravel data={block.data} auth={authLevel} />;
 						case "event":
-							return <CardEvent data={block.data} />;
+							return <CardEvent data={block.data} auth={authLevel} />;
 						default:
 							return <Fragment set:html={block} />;
 					}
@@ -126,7 +134,7 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 					return (
 						<aside id={`footnote${index + 1}`} class="content | footnote">
 							<span>[{index + 1}]</span>
-							<Fragment set:html={footnote} />
+							<Redacted data={footnote} auth={authLevel} />
 							<a
 								href={`#reference${index + 1}`}
 								title="Return to previous location in article."

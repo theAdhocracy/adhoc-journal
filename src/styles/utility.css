@@ -204,3 +204,8 @@
 		text-decoration: none;
 	}
 }
+
+s.redacted {
+	text-decoration: none;
+	filter: blur(0.25em);
+}
