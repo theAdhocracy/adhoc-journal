@@ -191,7 +191,7 @@
 	}
 }
 
-.crumbs {
+.pagination {
 	--block-gap: -3rem;
 
 	display: flex;
@@ -210,7 +210,42 @@
 	}
 }
 
+.crumbs {
+	--block-gap: 0;
+
+	margin-block-end: var(--block-gap);
+
+	& ol {
+		--list-gap: 0rem 0.25rem;
+	}
+
+	& li:first-of-type a {
+		text-decoration: none;
+	}
+}
+
 s.redacted {
 	text-decoration: none;
 	filter: blur(0.25em);
+}
+
+.polaroid {
+	--rotation: -2deg;
+	--block-gap: 1rem;
+
+	max-width: max-content;
+	margin-block-start: var(--block-gap);
+	padding: 0.6rem 0.5rem 0.4rem;
+	background-color: #fbfbfb;
+	box-shadow: 6px 5px 15px 0px rgba(0, 0, 0, 0.1);
+	rotate: var(--rotation);
+
+	& img {
+		box-shadow: inset 0 0 100px black;
+	}
+
+	& figcaption {
+		text-align: end;
+		padding-block-start: 0.2rem;
+	}
 }

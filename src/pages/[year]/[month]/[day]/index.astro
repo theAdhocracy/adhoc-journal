@@ -100,7 +100,7 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 	{
 		isAuthenticated && response && (
 			<main class="content">
-				<nav class="crumbs" aria-label="Breadcrumb">
+				<nav class="pagination" aria-label="Breadcrumbs">
 					{!prevCrumb && <strong>Past</strong>}
 					{prevCrumb && (
 						<a href={`${prevCrumb}`}>

@@ -63,8 +63,12 @@ const uid = Math.random().toString().replace("0.", "");
 
 <style>
 	div[role="region"] {
+		--block-gap: 1rem;
+
+		container: --scroll / inline-size; /* prevents flex/grid break outs */
+		max-width: 100%;
 		overflow: auto;
-		margin-block-start: 1rem;
+		margin-block-start: var(--block-gap);
 		padding-block: 1rem;
 
 		&:focus {

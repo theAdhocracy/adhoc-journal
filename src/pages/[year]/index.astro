@@ -74,7 +74,7 @@ const prevYear = currYear - 1;
 		isAuthenticated && (
 			<main>
 				<header>
-					<nav class="crumbs" aria-label="Breadcrumb">
+					<nav class="pagination" aria-label="Breadcrumb">
 						<a href={`/journal/${prevYear}`}>
 							<span aria-hidden="true">⬅</span> Prev
 						</a>
@@ -200,7 +200,7 @@ const prevYear = currYear - 1;
 		}
 	}
 
-	.crumbs {
+	.pagination {
 		--block-gap: 0;
 
 		place-content: center;

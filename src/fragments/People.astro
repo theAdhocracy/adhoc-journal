@@ -1,10 +1,12 @@
 ---
-const { data, auth } = Astro.props;
+const { data, auth = 0, isInline = false } = Astro.props;
+
+const Wrapper = isInline ? "span" : "p";
 ---
 
 {
 	data.length > 0 && (
-		<p>
+		<Wrapper>
 			with{" "}
 			{auth === 2 &&
 				data.map((person: any, index: number) => {
@@ -16,6 +18,6 @@ const { data, auth } = Astro.props;
 					);
 				})}
 			{auth < 2 && ` ${data.length} people`}
-		</p>
+		</Wrapper>
 	)
 }
