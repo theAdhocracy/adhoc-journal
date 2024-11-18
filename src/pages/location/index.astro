@@ -1,0 +1,261 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Map from "@/components/Map.astro";
+
+// Fetch initial data
+const countryAPI = await fetch(
+	`https://cms.theadhocracy.co.uk/search/location.json?q=&l=&f=home OR country`,
+	{
+		method: "GET",
+		headers: {
+			"content-type": "application/json",
+			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+		},
+	}
+);
+const countries = await countryAPI.json();
+const homeData = countries.data.splice(0, 1).pop();
+
+// Split out current home to use as center point
+const home = {
+	...homeData,
+	map: {
+		lat: homeData.lat,
+		long: homeData.long,
+		zoom: homeData.zoom,
+		uri: homeData.uri,
+	},
+};
+
+// Function: Search form
+let searchData: any[] = [];
+let topResult = null;
+let query = "";
+let location = "";
+let filter = "";
+let error = "";
+if (Astro.request.method === "POST") {
+	try {
+		// Extract data from form
+		const data = await Astro.request.formData();
+		query = data.get("query")?.toString() || "";
+		location = data.get("location")?.toString() || "";
+		filter = data.get("filter")?.toString() || "";
+
+		// Validate that some data has been requested
+		if (!query && !filter && !location) {
+			throw new Error("No data received");
+		}
+
+		// Build API query
+		const searchQuery = `q=${query}&l=${location}&f=${filter}`;
+
+		// Fetch search results
+		const api = await fetch(
+			`https://cms.theadhocracy.co.uk/search/location.json?${searchQuery}`,
+			{
+				method: "GET",
+				headers: {
+					"content-type": "application/json",
+					Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+				},
+			}
+		);
+		const response = await api.json();
+		searchData = response.data;
+		topResult = searchData.shift();
+
+		// Handle queries with no valid results
+		if (!topResult) {
+			error = "No locations match the search criteria.";
+		}
+	} catch (error) {
+		if (error instanceof Error) {
+			error = error.message;
+		}
+	}
+}
+
+// TODO: Add stats section
+---
+
+<Layout title="Locations" hasMap hasTransitions>
+	<main>
+		<h1>Locations</h1>
+		<search role="search">
+			<form method="POST">
+				<h2>Search</h2>
+				<label for="query">Find Location</label>
+				<input type="text" id="query" name="query" value={query} />
+				<label for="location">Restrict To Region</label>
+				<input type="text" id="location" name="location" value={location} />
+				<label for="filter">Filters:</label>
+				<select name="filter" id="filter">
+					<option value="">--Please choose an option--</option>
+					<option value="park" selected={filter === "park"}>Park</option>
+					<option value="nature" selected={filter === "nature"}>Nature</option>
+					<option value="restaurant" selected={filter === "restaurant"}>
+						Restaurant
+					</option>
+					<option value="pub" selected={filter === "pub"}>Pub</option>
+				</select>
+				<p class="loading">Loading...</p>
+				{error && <p class="error">Error: {error}</p>}
+				<button type="submit">Search</button>
+			</form>
+			{
+				searchData.length > 0 && (
+					<section class="results">
+						<h2>Results</h2>
+						<ul role="list">
+							{searchData.map((result: any) => {
+								// Makes search results filterable
+								const hasLandmark = result.type.length > 0;
+
+								return (
+									<li
+										class={
+											hasLandmark ? `marker-${result.type[0]}` : "marker-child"
+										}
+									>
+										<a href={`/journal/${result.uri}`}>{result.title}</a>
+									</li>
+								);
+							})}
+						</ul>
+					</section>
+				)
+			}
+		</search>
+		{
+			!topResult && (
+				<>
+					<Map
+						data={home.map}
+						title={home.title}
+						children={countries.data}
+						type={home.type[0]}
+					/>
+				</>
+			)
+		}
+		{
+			topResult && (
+				<>
+					<Map
+						data={topResult}
+						title={topResult.title}
+						children={searchData}
+						type={topResult.type[0]}
+						hasFilters
+						isSearchResults
+					/>
+				</>
+			)
+		}
+	</main>
+</Layout>
+
+<script>
+	// Function: Loading state for search form
+	const loadingMsg = document.querySelector("search .loading");
+	const button = document.querySelector("search button[type='submit']");
+
+	button?.addEventListener("click", () => {
+		loadingMsg?.classList.remove("loading");
+	});
+
+	document.addEventListener("astro:page-load", () => {
+		loadingMsg?.classList.add("loading");
+	});
+</script>
+
+<style>
+	main {
+		--gutters: max(1rem, 10dvw);
+		--content: calc(100vw - (2 * var(--gutters)));
+		--sidebar: calc(
+			var(--content) / 3
+		); /* how much of content should this fit (one-third) */
+
+		display: grid;
+		grid-template-columns:
+			[full-start] var(--gutters)
+			[overflow-start] minmax(0, 1fr)
+			[content-start timeline-start] minmax(auto, 50rem)
+			[timeline-end stats-start] min(var(--sidebar), 30rem)
+			[stats-end content-end] minmax(0, 1fr)
+			[overflow-end] var(--gutters)
+			[full-end];
+		gap: 1rem 0;
+		padding-block-start: 1rem;
+
+		& :global(> *) {
+			grid-column: content;
+		}
+
+		& :global(#map) {
+			grid-column: full;
+			margin-block-start: 2rem;
+		}
+	}
+
+	h2 {
+		font-size: var(--type-0);
+		font-family: var(--font-copy);
+	}
+
+	search {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 2rem;
+		margin-block-start: 1rem;
+
+		& form {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+			max-width: 20rem;
+			align-content: center;
+			align-items: center;
+
+			place-self: start;
+
+			& h2 {
+				width: 100%;
+			}
+		}
+
+		& input {
+			width: 100%;
+		}
+
+		& select {
+			margin-inline-start: auto;
+			flex-grow: 1;
+		}
+
+		& button {
+			margin-inline-start: auto;
+			padding: 0.25rem 1rem;
+		}
+
+		& input + label,
+		& button,
+		& select {
+			margin-block-start: 0.5rem;
+		}
+
+		.results {
+			max-width: 35rem;
+
+			& ul {
+				padding-block-start: 0.5rem;
+			}
+		}
+	}
+
+	.loading {
+		display: none;
+	}
+</style>
