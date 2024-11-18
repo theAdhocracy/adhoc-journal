@@ -1,0 +1,539 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Map from "@/components/Map.astro";
+import Menu from "@/components/Menu.astro";
+import Redacted from "@/components/Redacted.astro";
+import People from "@/fragments/People.astro";
+import StatsList from "@/fragments/StatsList.astro";
+import { getStarRating } from "@/utils/content";
+import { checkAuth } from "@/utils/auth";
+
+type Location = {
+	id: number;
+	uri: string;
+	title: string;
+	visits: {
+		[key: string]: number;
+	};
+	osm:
+		| [
+				{
+					label?: string;
+					value?: string;
+					selected?: boolean;
+					valid?: boolean;
+				},
+		  ]
+		| {};
+	map: {
+		lat?: number;
+		long?: number;
+		zoom?: number;
+		address?: {
+			street: string;
+			city: string;
+			postcode: string;
+			county: string;
+			country: string;
+		};
+	};
+	location?: {
+		title: string;
+		location?: {
+			title: string;
+			slug: string;
+			location?: string;
+		};
+		lat?: number;
+		long?: number;
+		slug: string;
+	};
+	children: any[];
+	parent: string;
+	checkins: any[];
+	breadcrumbs: string[];
+	type: string[];
+	sightings: {
+		[key: string]: number;
+	};
+};
+
+const { slug } = Astro.params;
+
+const apiEndpoint = slug?.replaceAll("/", "__");
+
+// Fetch page data
+const data = await fetch(
+	`https://cms.theadhocracy.co.uk/location/${apiEndpoint}.json`,
+	{
+		method: "GET",
+		headers: {
+			"content-type": "application/json",
+			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+		},
+	}
+);
+const response: Location = await data.json();
+
+const {
+	breadcrumbs,
+	checkins,
+	children,
+	map,
+	title,
+	uri,
+	type,
+	sightings,
+	visits,
+} = response;
+
+// Authentication
+let authLevel = 0;
+const isAuthenticated = checkAuth(Astro.cookies.get("auth"));
+
+if (!isAuthenticated) {
+	const currentPath = Astro.url.pathname;
+	return Astro.redirect(`/journal/login?path=${currentPath}`);
+} else {
+	authLevel = 2;
+}
+
+// TODO: Link drink results to pub subdomain ???
+---
+
+<Layout title="Location" hasMap hasTransitions>
+	<main>
+		{
+			breadcrumbs && (
+				<nav class="crumbs" aria-label="Breadcrumbs.">
+					<ol role="list">
+						{breadcrumbs.map((crumb, index) => {
+							// Regenerate URI match
+							const fragment = crumb.replaceAll(" ", "-").toLowerCase();
+
+							// Get subset of URI for href
+							const path = uri.substring(
+								0,
+								uri.indexOf(fragment) + fragment.length
+							);
+
+							// Specific location formatting
+							if (crumb === "Usa" || crumb === "Uk") {
+								crumb = crumb.toUpperCase();
+							}
+
+							// For the first item, simplify to icon
+							if (crumb === "Location") {
+								return (
+									<li>
+										<a
+											href={`/journal/${path}`}
+											aria-label="Locations"
+											title="Locations"
+										>
+											🗺
+										</a>
+										{index !== breadcrumbs.length - 1 && (
+											<span aria-hidden="true"> / </span>
+										)}
+									</li>
+								);
+							}
+
+							return (
+								<li>
+									<a href={`/journal/${path}`}>{crumb}</a>
+									{index !== breadcrumbs.length - 1 && (
+										<span aria-hidden="true"> / </span>
+									)}
+								</li>
+							);
+						})}
+					</ol>
+				</nav>
+			)
+		}
+		<h1>{title}</h1>
+		{
+			checkins?.length > 0 && (
+				<>
+					<section class="stats">
+						<h2>Stats</h2>
+						<StatsList
+							data={{
+								total: visits.total,
+								checkins: visits.visits,
+								ate: visits.ate,
+								drank: visits.drank,
+								events: visits.events,
+								sightings: visits.spotlists,
+							}}
+							spotlist={sightings}
+						/>
+						{type.length > 0 && (
+							<ul class="tags" role="list">
+								{type.map((tag) => (
+									<li>
+										<span>#</span>
+										{tag}
+									</li>
+								))}
+							</ul>
+						)}
+					</section>
+					<section class="checkins">
+						<h2>Timeline</h2>
+						<ul role="list">
+							{checkins.map((day) => {
+								return (
+									<li>
+										<h3>
+											<a href={`/journal/${day.uri}`}>
+												<time datetime={day.date}>{day.title}</time>
+											</a>
+										</h3>
+										<ul role="list">
+											{day.checkins.map((checkin: any) => {
+												let content;
+												switch (checkin.key) {
+													case "ate":
+														content = (
+															<>
+																<p>
+																	<span aria-hidden>🍽</span>
+																	{checkin.type !== "takeaway"
+																		? "Ate a meal"
+																		: "Got a takeaway"}
+																	<People
+																		data={checkin.people}
+																		auth={authLevel}
+																		isInline
+																	/>
+																</p>
+																{checkin.menu && (
+																	<details>
+																		<summary>Menu</summary>
+																		<Menu
+																			data={checkin.menu}
+																			auth={authLevel}
+																		/>
+																	</details>
+																)}
+																{checkin.notes && (
+																	<Redacted
+																		data={checkin.notes}
+																		auth={authLevel}
+																	/>
+																)}
+															</>
+														);
+														break;
+													case "drank":
+														const rating = getStarRating(checkin.rating);
+														const type =
+															checkin.type[checkin.type.length - 1].title;
+														content = (
+															<>
+																<p>
+																	<span aria-label="Drank:">🍺</span>{" "}
+																	<strong>{checkin.title}</strong>{" "}
+																	<span>
+																		({type} by {checkin.brewery[0]})
+																	</span>
+																</p>
+																<figure class="polaroid">
+																	<img
+																		src={checkin.image.src}
+																		alt={
+																			checkin.image.alt ||
+																			checkin.image.desc ||
+																			`A glass of ${checkin.title}`
+																		}
+																	/>
+																	<figcaption>
+																		<span
+																			aria-label={`${checkin.rating} out of five stars.`}
+																			title={`${checkin.rating} / 5`}
+																		>
+																			{rating}
+																		</span>
+																	</figcaption>
+																</figure>
+																{checkin.notes && (
+																	<Redacted
+																		data={checkin.notes}
+																		auth={authLevel}
+																	/>
+																)}
+															</>
+														);
+														break;
+													case "visited":
+														content = (
+															<>
+																<p>
+																	<span>🗺</span> Visited
+																	<People
+																		data={checkin.people}
+																		auth={authLevel}
+																		isInline
+																	/>
+																</p>
+															</>
+														);
+														break;
+													case "spotlist":
+														content = (
+															<>
+																<p>
+																	<span>🕵️</span> Wildlife seen:
+																</p>
+																<StatsList spotlist={checkin.stats} />
+																<details>
+																	<summary>Species</summary>
+																	<ul role="list">
+																		{checkin.species.map((taxon: any) => (
+																			<li>{taxon.title}</li>
+																		))}
+																	</ul>
+																</details>
+															</>
+														);
+														break;
+													case "attended":
+														content = (
+															<>
+																<p>
+																	<span aria-label="Attended:">🎟</span>{" "}
+																	<strong>{checkin.title}</strong>
+																	<People
+																		data={checkin.people}
+																		auth={authLevel}
+																		isInline
+																	/>
+																</p>
+															</>
+														);
+														break;
+													default:
+														content = <p>{checkin.key}</p>;
+														break;
+												}
+												return (
+													<li class={checkin.key}>
+														<h4>
+															<time
+																datetime={`${checkin.date.html} ${checkin.date.time}`}
+															>
+																{checkin.date.time}
+															</time>
+															{checkin.duration && !checkin.duration.isDate && (
+																<time
+																	datetime={`${checkin.duration.end.date} ${checkin.duration.end.time}`}
+																>
+																	- {checkin.duration.end.time}
+																</time>
+															)}
+														</h4>
+														{content}
+													</li>
+												);
+											})}
+										</ul>
+									</li>
+								);
+							})}
+						</ul>
+					</section>
+				</>
+			)
+		}
+		{
+			children?.length > 0 && (
+				<>
+					<h2>Sublocations</h2>
+					<ul role="list">
+						{children.map((location) => {
+							return (
+								<li>
+									<a href={`/journal/${location.uri}`}>{location.title}</a>
+								</li>
+							);
+						})}
+					</ul>
+				</>
+			)
+		}
+		<Map
+			data={map}
+			title={title}
+			children={children}
+			type={type[0]}
+			hasFilters
+		/>
+	</main>
+</Layout>
+
+<style>
+	main {
+		--gutters: max(1rem, 10dvw);
+		--content: calc(100vw - (2 * var(--gutters)));
+		--sidebar: calc(
+			var(--content) / 3
+		); /* how much of content should this fit (one-third) */
+
+		display: grid;
+		grid-template-columns:
+			[full-start] var(--gutters)
+			[overflow-start] minmax(0, 1fr)
+			[content-start timeline-start] minmax(auto, 40rem)
+			[timeline-end stats-start] min(var(--sidebar), 20rem)
+			[stats-end content-end] minmax(0, 1fr)
+			[overflow-end] var(--gutters)
+			[full-end];
+		gap: 1rem 0;
+		padding-block-start: 1rem;
+
+		& :global(> *) {
+			grid-column: content;
+		}
+
+		& :global(#map) {
+			grid-column: full;
+			margin-block-start: 2rem;
+		}
+
+		@media (width >= 1000px) {
+			& .stats {
+				grid-column: stats;
+				margin-inline-start: 1.5rem;
+			}
+
+			& .checkins {
+				grid-column: timeline;
+				grid-row: 3;
+				margin-inline-end: 1.5rem;
+			}
+		}
+	}
+
+	h2 {
+		font-size: var(--type-0);
+		font-family: var(--font-copy);
+	}
+
+	h3 {
+		margin-block-end: 0.75em;
+
+		& a {
+			text-decoration-style: dotted;
+			text-decoration-thickness: 4px;
+		}
+	}
+
+	h3 time {
+		font-size: var(--type-3);
+	}
+
+	h4 {
+		margin-inline: -1rem;
+		margin-block-end: 0.5em;
+	}
+
+	time {
+		font-size: var(--type-1);
+	}
+
+	ul ul {
+		--list-gap: 1.5rem;
+	}
+
+	ul ul li {
+		padding-inline: 1rem;
+	}
+
+	li {
+		span[aria-label],
+		span[aria-hidden] {
+			font-family: var(--font-emoji);
+		}
+	}
+
+	.stats {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		height: max-content;
+		margin-block-end: 1rem;
+		padding: 1rem;
+		border: 2px dashed black;
+	}
+
+	.checkins {
+		&,
+		ul {
+			--list-gap: 3rem;
+
+			flex-direction: column;
+		}
+
+		& h2 {
+			margin-block-end: 1rem;
+		}
+
+		& > ul > li {
+			width: 100%;
+		}
+	}
+
+	.ate {
+		& details {
+			height: max-content;
+			margin-block-start: 1rem;
+			text-align: center;
+			border: 1px solid lightgray;
+			border-radius: 0.25rem;
+
+			& :global(summary + *) {
+				--block-gap: 0;
+			}
+		}
+	}
+
+	.drank {
+		p {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.125rem 0.5rem;
+		}
+
+		img {
+			max-height: 7.5rem;
+		}
+	}
+
+	.spotlist {
+		& ul {
+			--list-gap: 0 1rem;
+
+			flex-direction: row;
+			padding: 0 1rem 0.5rem;
+
+			& li {
+				padding: 0;
+			}
+		}
+
+		& details {
+			height: max-content;
+			margin-block-start: 1rem;
+			text-align: center;
+			border: 1px solid lightgray;
+			border-radius: 0.25rem;
+
+			& :global(summary + *) {
+				--block-gap: 0;
+			}
+		}
+	}
+</style>
