@@ -1,0 +1,112 @@
+---
+type Props = {
+	title: string;
+	lineTitle: string;
+	linePath: string;
+	yAxisLabels: {
+		y: number;
+		label: string;
+	}[];
+	xAxisLabels: {
+		x: number;
+		label: string;
+	}[];
+	datapoints: {
+		x: number;
+		y: number;
+		label: string;
+	}[];
+};
+
+const { title, lineTitle, yAxisLabels, xAxisLabels, linePath, datapoints } =
+	Astro.props;
+
+// NOTE: Mirrors <table> semantics; based on https://tink.uk/accessible-svg-line-graphs/
+// NOTE: Odd viewbox allows 0 on SVG y-axis to be the x-axis line of the graph
+---
+
+<svg
+	width="300"
+	height="150"
+	viewBox="-10 -125 300 150"
+	fill="transparent"
+	stroke="currentColor"
+>
+	<title>{title}</title>
+	<!-- axes -->
+	<g class="ax">
+		<!-- x -->
+		<path d="M 20 0 L 270 0"></path>
+		<!-- y -->
+		<path d="M 20 -110 L 20 0"></path>
+	</g>
+
+	<!-- y-axis labels -->
+	<g aria-hidden="true" fill="currentColor" stroke="transparent">
+		{
+			yAxisLabels.map((label) => {
+				return (
+					<text x="12" text-anchor="end" y={label.y}>
+						{label.label}
+					</text>
+				);
+			})
+		}
+	</g>
+
+	<!-- Graph area and accessible content -->
+	<g role="table">
+		<!-- x-axis labels -->
+		<g role="row">
+			{
+				xAxisLabels.map((label) => {
+					return (
+						<text
+							role="columnheader"
+							x={label.x}
+							y="18"
+							text-anchor="middle"
+							fill="currentColor"
+							stroke="transparent"
+						>
+							{label.label}
+						</text>
+					);
+				})
+			}
+		</g>
+		<g role="row">
+			<!-- Line: Total checkins -->
+			<g role="rowheader">
+				<path role="img" d={linePath} stroke-linecap="round">
+					<title>{lineTitle}</title>
+				</path>
+			</g>
+
+			<!-- A11y: Data points -->
+			{
+				datapoints.map((datum) => {
+					return (
+						<g role="cell">
+							<rect
+								width="20"
+								height="10"
+								x={datum.x - 10}
+								y={datum.y - 5}
+								stroke="transparent"
+							>
+								<title>{datum.label}</title>
+							</rect>
+						</g>
+					);
+				})
+			}
+		</g>
+	</g>
+</svg>
+
+<style>
+	svg {
+		font-size: var(--type--2);
+	}
+</style>
