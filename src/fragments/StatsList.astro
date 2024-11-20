@@ -1,5 +1,12 @@
 ---
+type Props = {
+	data?: Record<string, number>;
+	spotlist?: Record<string, number>;
+};
+
 const { data = {}, spotlist = {} } = Astro.props;
+
+console.log(data);
 
 const {
 	total = 0,
@@ -9,6 +16,11 @@ const {
 	people = 0,
 	events = 0,
 	sightings = 0,
+	countries = 0,
+	cities = 0,
+	pubs = 0,
+	restaurants = 0,
+	nature = 0,
 } = data;
 
 const {
@@ -70,6 +82,42 @@ const datapoints = [
 		tooltip: "Animals Seen",
 		value: sightings,
 		isValid: sightings > 0,
+	},
+	{
+		// Pride flag for pride month
+		icon: new Date().getMonth() === 5 ? "🏳️‍🌈" : "🏴‍☠️",
+		aria: "Countries.",
+		tooltip: "Countries",
+		value: countries,
+		isValid: countries > 0,
+	},
+	{
+		icon: "🏙",
+		aria: "Cities.",
+		tooltip: "Cities",
+		value: cities,
+		isValid: cities > 0,
+	},
+	{
+		icon: "🍻",
+		aria: "Pubs.",
+		tooltip: "Pubs",
+		value: pubs,
+		isValid: pubs > 0,
+	},
+	{
+		icon: "🍽",
+		aria: "Restaurants.",
+		tooltip: "Restaurants",
+		value: restaurants,
+		isValid: restaurants > 0,
+	},
+	{
+		icon: "🌲",
+		aria: "Nature.",
+		tooltip: "Nature",
+		value: nature,
+		isValid: nature > 0,
 	},
 ];
 
@@ -139,12 +187,14 @@ const hasSightings =
 				if (!datum.isValid) return null;
 
 				return (
-					<>
-						<dt aria-label={datum.aria} title={datum.tooltip}>
-							{datum.icon}
+					<span>
+						<dt title={datum.tooltip}>
+							<span role="img" aria-label={datum.aria}>
+								{datum.icon}
+							</span>
 						</dt>
 						<dd>{datum.value}</dd>
-					</>
+					</span>
 				);
 			})}
 		</dl>
@@ -174,11 +224,12 @@ const hasSightings =
 	dl {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.25rem;
+		gap: 0.25rem 0.75rem;
 		max-width: max-content;
+	}
 
-		& dd + dt {
-			margin-inline-start: 0.75rem;
-		}
+	span {
+		display: flex;
+		gap: 0.25rem;
 	}
 </style>

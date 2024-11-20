@@ -1,6 +1,8 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import Map from "@/components/Map.astro";
+import LineGraph from "@/components/LineGraph.astro";
+import StatsList from "@/fragments/StatsList.astro";
 
 // Fetch initial data
 const countryAPI = await fetch(
@@ -26,6 +28,78 @@ const home = {
 		uri: homeData.uri,
 	},
 };
+
+// Fetch stats
+const statsAPI = await fetch(
+	`https://cms.theadhocracy.co.uk/stats/locations.json`,
+	{
+		method: "GET",
+		headers: {
+			"content-type": "application/json",
+			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+		},
+	}
+);
+const stats = await statsAPI.json();
+
+// Graph: Y Axis
+// NOTE: rounded up to the nearest 10
+const yAxisLimit =
+	Math.round(Math.max(...stats.graph.map((item: any) => item.checkins)) / 10) *
+	10;
+const yAxisGap = yAxisLimit / 3;
+
+const yAxisLabels = Array.from({ length: 3 }, (_, index: number) => {
+	const y = -100 + 35 * index;
+	const label = Math.round(yAxisLimit - index * yAxisGap);
+
+	return {
+		y: y,
+		label: label.toString(),
+	};
+});
+
+// Graph: X Axis
+const monthLetters = [
+	"J",
+	"F",
+	"M",
+	"A",
+	"M",
+	"J",
+	"J",
+	"A",
+	"S",
+	"O",
+	"N",
+	"D",
+];
+
+const xAxisLabels = stats.graph.map((datum: any, index: number) => {
+	const month = datum.month.replace(/^[0-9]*-([0-9]*)-.*$/, "$1");
+	const x = 40 + 20 * index;
+
+	return {
+		x: x,
+		label: monthLetters[Number(month) - 1],
+	};
+});
+
+// Graph: SVG path & labels
+let checkinPath = "m 30 ";
+const graphDataCoords = stats.graph.map((datum: any, index: number) => {
+	// Path for graph line
+	const x = 50 + index * 20;
+	const y = (datum.checkins / yAxisLimit) * 100;
+	checkinPath += `-${y} L ${x} -${y} L ${x} `;
+
+	// Data label placement
+	return {
+		x: 40 + 20 * index,
+		y: -y,
+		label: datum.checkins,
+	};
+});
 
 // Function: Search form
 let searchData: any[] = [];
@@ -75,13 +149,46 @@ if (Astro.request.method === "POST") {
 		}
 	}
 }
-
-// TODO: Add stats section
 ---
 
 <Layout title="Locations" hasMap hasTransitions>
 	<main>
 		<h1>Locations</h1>
+		<section class="stats">
+			<h2>Stats</h2>
+			<p>All Time</p>
+			<StatsList
+				data={{
+					total: stats.allTime.unique,
+					countries: stats.allTime.countries,
+					cities: stats.allTime.cities,
+					pubs: stats.allTime.pubs,
+					restaurants: stats.allTime.food,
+					nature: stats.allTime.nature,
+				}}
+			/>
+			<p>In {stats.year}</p>
+			<StatsList
+				data={{
+					total: stats.currentYear.expanded,
+					checkins: stats.currentYear.unique,
+					countries: stats.currentYear.countries,
+					cities: stats.currentYear.cities,
+					pubs: stats.currentYear.pubs,
+					restaurants: stats.currentYear.food,
+					nature: stats.currentYear.nature,
+				}}
+			/>
+			<p>Last 12 Months</p>
+			<LineGraph
+				title="Total visited locations per month (labelled as first letter)."
+				lineTitle="Location total."
+				linePath={checkinPath}
+				xAxisLabels={xAxisLabels}
+				yAxisLabels={yAxisLabels}
+				datapoints={graphDataCoords}
+			/>
+		</section>
 		<search role="search">
 			<form method="POST">
 				<h2>Search</h2>
@@ -175,8 +282,8 @@ if (Astro.request.method === "POST") {
 		--gutters: max(1rem, 10dvw);
 		--content: calc(100vw - (2 * var(--gutters)));
 		--sidebar: calc(
-			var(--content) / 3
-		); /* how much of content should this fit (one-third) */
+			var(--content) / 2
+		); /* how much of content should this fit (half) */
 
 		display: grid;
 		grid-template-columns:
@@ -197,6 +304,19 @@ if (Astro.request.method === "POST") {
 		& :global(#map) {
 			grid-column: full;
 			margin-block-start: 2rem;
+		}
+
+		@media (width >= 1000px) {
+			& .stats {
+				grid-column: stats;
+				margin-inline-start: 1.5rem;
+			}
+
+			& search {
+				grid-column: timeline;
+				grid-row: 2;
+				margin-inline-end: 1.5rem;
+			}
 		}
 	}
 
@@ -247,11 +367,19 @@ if (Astro.request.method === "POST") {
 		}
 
 		.results {
-			max-width: 35rem;
+			flex: 1 1 14rem;
 
 			& ul {
 				padding-block-start: 0.5rem;
 			}
+		}
+	}
+
+	.stats {
+		margin-block-start: 1rem;
+
+		& > p {
+			margin-block: 0.5rem 0.125rem;
 		}
 	}
 
