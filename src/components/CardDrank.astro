@@ -21,11 +21,17 @@ const rating = getStarRating(data.rating);
 	<h2>
 		{data.title}
 	</h2>
-	<p>{data.type[data.type.length - 1].title} by {data.brewery[0]}</p>
-	<img
-		src={data.image.src}
-		alt={data.image.alt || data.image.desc || `A glass of ${data.title}`}
-	/>
+	<p>
+		{data.type[data.type.length - 1].title} by {data.brewery[0] ?? "???"}
+	</p>
+	{
+		data.image && (
+			<img
+				src={data.image.src}
+				alt={data.image.alt || data.image.desc || `A glass of ${data.title}`}
+			/>
+		)
+	}
 	<p>
 		📍 {data.location.title}, {data.location.location?.title}
 	</p>

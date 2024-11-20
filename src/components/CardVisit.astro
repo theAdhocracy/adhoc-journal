@@ -10,8 +10,7 @@ const { data, auth = 0 } = Astro.props;
 	</time>
 	<span aria-label="Visited:">📍</span>
 	<h2>
-		<a href={`/journal/location/${data.location.slug}`}>{data.location.title}</a
-		>
+		<a href={`/journal/${data.location.uri}`}>{data.location.title}</a>
 	</h2>
 	<p>{data.location.location?.location || data.location.title}</p>
 	<People data={data.people} auth={auth} />
