@@ -56,6 +56,9 @@ type Location = {
 	sightings: {
 		[key: string]: number;
 	};
+	error?: {
+		code: number;
+	};
 };
 
 const { slug } = Astro.params;
@@ -75,6 +78,10 @@ const data = await fetch(
 );
 const response: Location = await data.json();
 
+if (response.error) {
+	return Astro.redirect("/journal/404");
+}
+
 const {
 	breadcrumbs,
 	checkins,
@@ -88,15 +95,11 @@ const {
 } = response;
 
 // Authentication
-let authLevel = 0;
-const isAuthenticated = checkAuth(Astro.cookies.get("auth"));
-
-if (!isAuthenticated) {
-	const currentPath = Astro.url.pathname;
-	return Astro.redirect(`/journal/login?path=${currentPath}`);
-} else {
-	authLevel = 2;
-}
+const today = new Date();
+const { authLevel, lockDate } = checkAuth(
+	Astro.cookies.get("auth"),
+	today.toString()
+);
 
 // TODO: Link drink results to pub subdomain ???
 ---
@@ -185,6 +188,13 @@ if (!isAuthenticated) {
 						<h2>Timeline</h2>
 						<ul role="list">
 							{checkins.map((day) => {
+								if (authLevel < 1 && lockDate) {
+									const isDateLocked = new Date(day.date) > lockDate;
+									if (isDateLocked) {
+										return null;
+									}
+								}
+
 								return (
 									<li>
 										<h3>
@@ -368,7 +378,7 @@ if (!isAuthenticated) {
 			data={map}
 			title={title}
 			children={children}
-			type={type[0]}
+			type={type?.[0]}
 			hasFilters
 		/>
 	</main>

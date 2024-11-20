@@ -20,17 +20,6 @@ Astro.response.headers.set(
 // Route parameters
 const { year, month, day } = Astro.params;
 
-// Authenticated route
-let authLevel = 0;
-const isAuthenticated = checkAuth(Astro.cookies.get("auth"));
-
-if (!isAuthenticated) {
-	const currentPath = Astro.url.pathname;
-	return Astro.redirect(`/journal/login?path=${currentPath}`);
-} else {
-	authLevel = 2;
-}
-
 // Validate route
 const isValid = validDateRoute(year, month, day);
 
@@ -49,6 +38,18 @@ const contentDate = new Date(apiDate).toLocaleDateString("en-GB", {
 	month: "long",
 	year: "numeric",
 });
+
+// Authentication
+let { isAuthenticated, authLevel, isDateLocked } = checkAuth(
+	Astro.cookies.get("auth"),
+	apiDate
+);
+
+// Otherwise check authentication & require log in
+if (!isAuthenticated && isDateLocked) {
+	const currentPath = Astro.url.pathname;
+	return Astro.redirect(`/journal/login?path=${currentPath}`);
+}
 
 // Fetch page data
 const data = await fetch(
@@ -97,82 +98,86 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 ---
 
 <Layout title={apiDate}>
-	{
-		isAuthenticated && response && (
-			<main class="content">
-				<nav class="pagination" aria-label="Breadcrumbs">
-					{!prevCrumb && <strong>Past</strong>}
-					{prevCrumb && (
-						<a href={`${prevCrumb}`}>
-							<span aria-hidden="true">⬅</span> Prev
-						</a>
+	<main class="content">
+		<nav class="pagination" aria-label="Breadcrumbs">
+			{!prevCrumb && <strong>Past</strong>}
+			{
+				prevCrumb && (
+					<a href={`${prevCrumb}`}>
+						<span aria-hidden="true">⬅</span> Prev
+					</a>
+				)
+			}
+			<span aria-hidden="true">/</span>
+			<a href={`/journal/${year}`}>{year}</a>
+			<span aria-hidden="true">/</span>
+			<a href={`/journal/${year}/${month}`}>{currMonth}</a>
+			<span aria-hidden="true">/</span>
+			{
+				nextCrumb && (
+					<a href={`${nextCrumb}`}>
+						Next <span aria-hidden="true">➡</span>
+					</a>
+				)
+			}
+			{!nextCrumb && <strong>Future</strong>}
+		</nav>
+		<h1>
+			<time datetime={apiDate}>{contentDate}</time>
+			{(authLevel > 0 && response.title) || "Nothing To See Here"}
+		</h1>
+		{
+			authLevel > 0 && response && (
+				<>
+					{content?.map((block: { type: string; data?: any }) => {
+						if (!block.data) return;
+
+						switch (block.type) {
+							case "copy":
+								return <Fragment set:html={block.data} />;
+							case "ate":
+								return <CardAte data={block.data} auth={authLevel} />;
+							case "drank":
+								return <CardDrank data={block.data} auth={authLevel} />;
+							case "visit":
+								return <CardVisit data={block.data} auth={authLevel} />;
+							case "travel":
+								return <CardTravel data={block.data} auth={authLevel} />;
+							case "event":
+								return <CardEvent data={block.data} auth={authLevel} />;
+							default:
+								return <Fragment set:html={block} />;
+						}
+					})}
+
+					{response.footnotes?.length > 0 && <h2>Footnotes</h2>}
+					{response.footnotes?.map((footnote: any, index: number) => {
+						return (
+							<aside id={`footnote${index + 1}`} class="content | footnote">
+								<span>[{index + 1}]</span>
+								<Redacted data={footnote} auth={authLevel} />
+								<a
+									href={`#reference${index + 1}`}
+									title="Return to previous location in article."
+									aria-label="Return to previous location in article."
+								>
+									↬
+								</a>
+							</aside>
+						);
+					})}
+
+					{response.sightings?.length > 0 && (
+						<h2 class="spotlist">Wildlife Sightings</h2>
 					)}
-					<span aria-hidden="true">/</span>
-					<a href={`/journal/${year}`}>{year}</a>
-					<span aria-hidden="true">/</span>
-					<a href={`/journal/${year}/${month}`}>{currMonth}</a>
-					<span aria-hidden="true">/</span>
-					{nextCrumb && (
-						<a href={`${nextCrumb}`}>
-							Next <span aria-hidden="true">➡</span>
-						</a>
-					)}
-					{!nextCrumb && <strong>Future</strong>}
-				</nav>
-				<h1>
-					<time datetime={apiDate}>{contentDate}</time>
-					{response.title || "Nothing To See Here"}
-				</h1>
-
-				{content?.map((block: { type: string; data?: any }) => {
-					if (!block.data) return;
-
-					switch (block.type) {
-						case "copy":
-							return <Fragment set:html={block.data} />;
-						case "ate":
-							return <CardAte data={block.data} auth={authLevel} />;
-						case "drank":
-							return <CardDrank data={block.data} auth={authLevel} />;
-						case "visit":
-							return <CardVisit data={block.data} auth={authLevel} />;
-						case "travel":
-							return <CardTravel data={block.data} auth={authLevel} />;
-						case "event":
-							return <CardEvent data={block.data} auth={authLevel} />;
-						default:
-							return <Fragment set:html={block} />;
-					}
-				})}
-
-				{response.footnotes?.length > 0 && <h2>Footnotes</h2>}
-				{response.footnotes?.map((footnote: any, index: number) => {
-					return (
-						<aside id={`footnote${index + 1}`} class="content | footnote">
-							<span>[{index + 1}]</span>
-							<Redacted data={footnote} auth={authLevel} />
-							<a
-								href={`#reference${index + 1}`}
-								title="Return to previous location in article."
-								aria-label="Return to previous location in article."
-							>
-								↬
-							</a>
-						</aside>
-					);
-				})}
-
-				{response.sightings?.length > 0 && (
-					<h2 class="spotlist">Wildlife Sightings</h2>
-				)}
-				{response.sightings?.map((spotlist: any) => {
-					return <SpotList data={spotlist} auth={authLevel} />;
-				})}
-
-				{response.error && <p>Doesn't look like I was very busy today 🤷‍♀️</p>}
-			</main>
-		)
-	}
+					{response.sightings?.map((spotlist: any) => {
+						return <SpotList data={spotlist} auth={authLevel} />;
+					})}
+				</>
+			)
+		}
+		{response.error && <p>Doesn't look like I was very busy today 🤷‍♀️</p>}
+	</main>
 </Layout>
 
 <style>

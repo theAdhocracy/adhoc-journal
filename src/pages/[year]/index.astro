@@ -14,20 +14,18 @@ Astro.response.headers.set(
 // Route parameters
 const { year } = Astro.params;
 
-// Authenticated route
-const isAuthenticated = checkAuth(Astro.cookies.get("auth"));
-
-if (!isAuthenticated) {
-	const currentPath = Astro.url.pathname;
-	return Astro.redirect(`/journal/login?path=${currentPath}`);
-}
-
 // Validate route
 const isValid = validDateRoute(year);
 
 if (!isValid || !year) {
 	return Astro.redirect("/journal/404");
 }
+
+// Authenticated route
+const { authLevel, isDateLocked, lockDate } = checkAuth(
+	Astro.cookies.get("auth"),
+	`${year}/12/31`
+);
 
 // Fetch page data
 const data = await fetch(
@@ -69,99 +67,131 @@ const nextYear = currYear + 1;
 const prevYear = currYear - 1;
 ---
 
-<Layout title={year}
-	>{
-		isAuthenticated && (
-			<main>
-				<header>
-					<nav class="pagination" aria-label="Breadcrumb">
-						<a href={`/journal/${prevYear}`}>
-							<span aria-hidden="true">⬅</span> Prev
-						</a>
-						<span aria-hidden="true"> / </span>
-						<a href={`/journal/${nextYear}`}>
-							Next <span aria-hidden="true">➡</span>
-						</a>
-					</nav>
-					<h1>{year}</h1>
-					<section class="stats">
-						<h2>Total Stats</h2>
-						<StatsList
-							data={{
-								total: entries,
-								checkins: checkins,
-								ate: food,
-								drank: drink,
-								people: friends,
-							}}
-						/>
-					</section>
-				</header>
-				<section class="calendar">
-					{calendarSort.map((month: any) => {
-						const totalDays = [...Array(month[0].monthTotal)];
-						const firstDay = new Date(
-							Number(month[0].date.year),
-							Number(month[0].date.month) - 1,
-							1
-						).getDay();
+<Layout title={year}>
+	<main>
+		<header>
+			<nav class="pagination" aria-label="Breadcrumb">
+				<a href={`/journal/${prevYear}`}>
+					<span aria-hidden="true">⬅</span> Prev
+				</a>
+				<span aria-hidden="true"> / </span>
+				<a href={`/journal/${nextYear}`}>
+					Next <span aria-hidden="true">➡</span>
+				</a>
+			</nav>
+			<h1>{year}</h1>
+			<section class="stats">
+				<h2>Total Stats</h2>
+				<StatsList
+					data={{
+						total: entries,
+						checkins: checkins,
+						ate: food,
+						drank: drink,
+						people: friends,
+					}}
+				/>
+			</section>
+			{
+				isDateLocked && authLevel < 1 && (
+					<p>
+						You may need to{" "}
+						<a href={`/journal/login?path=${Astro.url.pathname}`}>log in</a> to
+						see all entries.
+					</p>
+				)
+			}
+		</header>
+		<section class="calendar">
+			{
+				calendarSort.map((month: any) => {
+					const totalDays = [...Array(month[0].monthTotal)];
+					const firstDay = new Date(
+						Number(month[0].date.year),
+						Number(month[0].date.month) - 1,
+						1
+					).getDay();
 
-						return (
-							<section class="calendar-leaf" data-month={month[0].date.month}>
-								<a href={`/journal/${year}/${month[0].date.month}`}>
-									<h2>{month[0].date.monthName}</h2>
-								</a>
-								<ol role="list">
-									<li>M</li>
-									<li>T</li>
-									<li>W</li>
-									<li>T</li>
-									<li>F</li>
-									<li>S</li>
-									<li>S</li>
-								</ol>
-								<ol role="list">
-									{totalDays.map((day, index) => {
-										const normalisedDay =
-											index >= 9 ? index + 1 : `0${index + 1}`;
+					return (
+						<section class="calendar-leaf" data-month={month[0].date.month}>
+							<a href={`/journal/${year}/${month[0].date.month}`}>
+								<h2>{month[0].date.monthName}</h2>
+							</a>
+							<ol role="list">
+								<li>M</li>
+								<li>T</li>
+								<li>W</li>
+								<li>T</li>
+								<li>F</li>
+								<li>S</li>
+								<li>S</li>
+							</ol>
+							<ol role="list">
+								{totalDays.map((day, index) => {
+									const normalisedDay =
+										index >= 9 ? index + 1 : `0${index + 1}`;
 
-										// If date has related entry, highlight it
-										const dateEntry = month.find(
-											(entry: any) =>
-												entry.date.day === normalisedDay.toString()
+									// If date has related entry, highlight it
+									const dateEntry = month.find(
+										(entry: any) => entry.date.day === normalisedDay.toString()
+									);
+
+									// Check if date is locked
+									let isNotLocked = true;
+									if (authLevel < 1 && isDateLocked && dateEntry && lockDate) {
+										const fullDate = new Date(
+											`${dateEntry.date.year}/${dateEntry.date.month}/${dateEntry.date.day} 12:00`
 										);
 
-										if (dateEntry) {
-											return (
-												<li
-													class:list={[
-														index === 0 &&
-															`month-start month-offset-${firstDay}`,
-													]}
-												>
-													<a
-														href={`/journal/${dateEntry.date.year}/${dateEntry.date.month}/${dateEntry.date.day}`}
-													>
-														{normalisedDay}
-													</a>
-												</li>
-											);
+										if (fullDate > lockDate) {
+											isNotLocked = false;
 										}
+									}
+
+									if (dateEntry && isNotLocked) {
 										return (
 											<li
 												class:list={[
 													index === 0 && `month-start month-offset-${firstDay}`,
 												]}
 											>
-												{normalisedDay}
+												<a
+													href={`/journal/${dateEntry.date.year}/${dateEntry.date.month}/${dateEntry.date.day}`}
+												>
+													{normalisedDay}
+												</a>
 											</li>
 										);
-									})}
-								</ol>
-								<details>
-									<summary>View Entries</summary>
-									<ul role="list" class="entry-leaf">
-										{month.map((day: any) => {
+									}
+
+									return (
+										<li
+											class:list={[
+												index === 0 && `month-start month-offset-${firstDay}`,
+											]}
+										>
+											{normalisedDay}
+										</li>
+									);
+								})}
+							</ol>
+							<details>
+								<summary>View Entries</summary>
+								<ul role="list" class="entry-leaf">
+									{month.map((day: any) => {
+										// Check if date is locked
+										let isNotLocked = true;
+										if (authLevel < 1 && isDateLocked && lockDate) {
+											const fullDate = new Date(
+												`${day.date.year}/${day.date.month}/${day.date.day} 12:00`
+											);
+
+											if (fullDate > lockDate) {
+												isNotLocked = false;
+											}
+										}
+
+										if (isNotLocked) {
 											return (
 												<li>
 													<span>{day.date.day}</span>
@@ -172,17 +202,17 @@ const prevYear = currYear - 1;
 													</a>
 												</li>
 											);
-										})}
-									</ul>
-								</details>
-							</section>
-						);
-					})}
-				</section>
-			</main>
-		)
-	}</Layout
->
+										}
+									})}
+								</ul>
+							</details>
+						</section>
+					);
+				})
+			}
+		</section>
+	</main>
+</Layout>
 
 <style>
 	main {
@@ -281,6 +311,11 @@ const prevYear = currYear - 1;
 				font-size: 1.2rem;
 				line-height: 1.3;
 			}
+		}
+
+		/* Hide empty details */
+		& details:not(:has(li)) {
+			display: none;
 		}
 
 		/* Offset the first date */

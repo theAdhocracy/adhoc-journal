@@ -5,8 +5,10 @@ const params = new URLSearchParams(Astro.url.searchParams);
 const referrer = params.get("path");
 
 // Handle Form Logic
-const validPassword = import.meta.env.AUTH_PASSWORD;
-const validCode = import.meta.env.AUTH_VALIDATION;
+const validPassword1 = import.meta.env.AUTH_PASSWORD_1;
+const validPassword2 = import.meta.env.AUTH_PASSWORD_2;
+const validLevel1 = import.meta.env.AUTH_VALIDATION_1;
+const validLevel2 = import.meta.env.AUTH_VALIDATION_2;
 const errors = { password: "" };
 
 if (Astro.request.method === "POST") {
@@ -16,11 +18,17 @@ if (Astro.request.method === "POST") {
 		const password = data.get("password");
 
 		// Validate form data
-		if (
-			typeof password !== "string" ||
-			password.length < 10 ||
-			password !== validPassword
-		) {
+		if (typeof password !== "string" || password.length < 10) {
+			errors.password += "Password is invalid.";
+		}
+
+		// Validate password value
+		let authLevel;
+		if (password === validPassword1) {
+			authLevel = validLevel1;
+		} else if (password === validPassword2) {
+			authLevel = validLevel2;
+		} else {
 			errors.password += "Password is invalid.";
 		}
 
@@ -32,7 +40,7 @@ if (Astro.request.method === "POST") {
 			// NOTE: 86400000 is a single day in ms, so this is 90 days
 			const expirationDate = new Date(Date.now() + 86400000 * 90);
 
-			Astro.cookies.set("auth", validCode, {
+			Astro.cookies.set("auth", authLevel, {
 				expires: expirationDate,
 				sameSite: "strict",
 				httpOnly: true,
@@ -42,7 +50,9 @@ if (Astro.request.method === "POST") {
 			// Development environment fix (due to hosting at a subdirectory)
 			const redirect = referrer?.replace(/^\/journal/, "");
 
-			return Astro.redirect(`/journal${redirect}` || "/journal");
+			return !redirect
+				? Astro.redirect(`/journal?`)
+				: Astro.redirect(`/journal${redirect}?`);
 		} else {
 			Astro.cookies.delete("auth");
 		}

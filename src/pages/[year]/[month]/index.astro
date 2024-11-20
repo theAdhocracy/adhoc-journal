@@ -14,17 +14,6 @@ Astro.response.headers.set(
 // Route parameters
 const { year, month } = Astro.params;
 
-// Authenticated route
-let authLevel = 0;
-const isAuthenticated = checkAuth(Astro.cookies.get("auth"));
-
-if (!isAuthenticated) {
-	const currentPath = Astro.url.pathname;
-	return Astro.redirect(`/journal/login?path=${currentPath}`);
-} else {
-	authLevel = 2;
-}
-
 // Validate route
 const isValid = validDateRoute(year, month);
 
@@ -57,7 +46,26 @@ const response = await api.json();
 const { data } = response;
 
 // Entry date array
-const daysOfMonth = data?.[0]?.monthTotal;
+let daysOfMonth = data?.[0]?.monthTotal;
+
+// Authenticated route
+const validDate = `${year}/${standardiseMonth(month)}/${daysOfMonth}`;
+const { authLevel, isDateLocked, lockDate } = checkAuth(
+	Astro.cookies.get("auth"),
+	validDate
+);
+
+// Work out which results are date locked
+if (isDateLocked && lockDate && authLevel < 1) {
+	// Are any valid?
+	if (lockDate < new Date(`${year}/${standardiseMonth(month)}/01 12:00`)) {
+		daysOfMonth = 0;
+	} else {
+		const lastDay = lockDate.getDate();
+		const dateDiff = daysOfMonth - lastDay;
+		daysOfMonth = daysOfMonth - dateDiff;
+	}
+}
 
 // Breadcrumb navigation
 const currMonth = new Date(
@@ -82,90 +90,98 @@ const prevCrumb = `${prevMonth.getFullYear()}/${prevMonth.getMonth() + 1}`;
 ---
 
 <Layout title={`${date.month} ${date.year}`}>
-	{
-		isAuthenticated && (
-			<main>
-				<nav class="pagination" aria-label="Breadcrumbs">
-					<a href={`/journal/${prevCrumb}`}>
-						<span aria-hidden="true">⬅</span> Prev
-					</a>
-					<span aria-hidden="true">/</span>
-					<a href={`/journal/${date.year}`}>{date.year}</a>
-					<span aria-hidden="true">/</span>
-					<a href={`/journal/${nextCrumb}`}>
-						Next <span aria-hidden="true">➡</span>
-					</a>
-				</nav>
-				<h1>
-					{date.month} {date.year}
-				</h1>
-				{daysOfMonth && (
-					<ul role="list" class="timeline">
-						{[...Array(daysOfMonth)].map((day, index) => {
-							const normalisedDay = index >= 9 ? index + 1 : `0${index + 1}`;
+	<main>
+		<nav class="pagination" aria-label="Breadcrumbs">
+			<a href={`/journal/${prevCrumb}`}>
+				<span aria-hidden="true">⬅</span> Prev
+			</a>
+			<span aria-hidden="true">/</span>
+			<a href={`/journal/${date.year}`}>{date.year}</a>
+			<span aria-hidden="true">/</span>
+			<a href={`/journal/${nextCrumb}`}>
+				Next <span aria-hidden="true">➡</span>
+			</a>
+		</nav>
+		<h1>
+			{date.month}
+			{date.year}
+		</h1>
+		{
+			isDateLocked && authLevel < 1 && (
+				<p>
+					You may need to{" "}
+					<a href={`/journal/login?path=${Astro.url.pathname}`}>log in</a> to
+					see all entries.
+				</p>
+			)
+		}
+		{
+			daysOfMonth > 0 && (
+				<ul role="list" class="timeline">
+					{[...Array(daysOfMonth)].map((day, index) => {
+						const normalisedDay = index >= 9 ? index + 1 : `0${index + 1}`;
 
-							// If date has related entry, highlight it
-							const dateEntry = data.find(
-								(entry: any) => entry.date.day === normalisedDay.toString()
-							);
+						// If date has related entry, highlight it
+						const dateEntry = data.find(
+							(entry: any) => entry.date.day === normalisedDay.toString()
+						);
 
-							if (dateEntry) {
-								const {
-									ate,
-									drank,
-									title,
-									sightings,
-									checkins,
-									people,
-									date,
-									copy,
-								} = dateEntry;
+						if (dateEntry) {
+							const {
+								ate,
+								drank,
+								title,
+								sightings,
+								checkins,
+								people,
+								date,
+								copy,
+							} = dateEntry;
 
-								const url = `${date.year}/${date.month}/${date.day}`;
-
-								return (
-									<li>
-										<p>{normalisedDay}</p>
-										<article>
-											<a href={`/journal/${url}`}>
-												<h2>{title}</h2>
-											</a>
-											{copy !== null && (
-												<Redacted data={copy} auth={authLevel} />
-											)}
-											<footer>
-												<StatsList
-													data={{
-														checkins: checkins,
-														ate: ate,
-														drank: drank,
-														people: people,
-														sightings: sightings,
-													}}
-												/>
-											</footer>
-										</article>
-									</li>
-								);
-							}
+							const url = `${date.year}/${date.month}/${date.day}`;
 
 							return (
-								<li data-empty="true">
+								<li>
 									<p>{normalisedDay}</p>
+									<article>
+										<a href={`/journal/${url}`}>
+											<h2>{title}</h2>
+										</a>
+										{copy !== null && <Redacted data={copy} auth={authLevel} />}
+										<footer>
+											<StatsList
+												data={{
+													checkins: checkins,
+													ate: ate,
+													drank: drank,
+													people: people,
+													sightings: sightings,
+												}}
+											/>
+										</footer>
+									</article>
 								</li>
 							);
-						})}
-					</ul>
-				)}
-				{!daysOfMonth && (
-					<p>
-						Looks like nothing of interest happened during this period, sorry.
-						Have a dinosaur instead: 🦕
-					</p>
-				)}
-			</main>
-		)
-	}
+						}
+
+						return (
+							<li data-empty="true">
+								<p>{normalisedDay}</p>
+							</li>
+						);
+					})}
+				</ul>
+			)
+		}
+		{
+			!daysOfMonth && (
+				<p>
+					Looks like nothing of interest happened during this period, sorry.
+					Have a dinosaur instead: 🦕
+				</p>
+			)
+		}
+	</main>
 </Layout>
 
 <style>
