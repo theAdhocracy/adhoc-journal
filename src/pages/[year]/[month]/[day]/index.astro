@@ -125,6 +125,8 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 				</h1>
 
 				{content?.map((block: { type: string; data?: any }) => {
+					if (!block.data) return;
+
 					switch (block.type) {
 						case "copy":
 							return <Fragment set:html={block.data} />;

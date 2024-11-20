@@ -20,6 +20,9 @@ export const formatContent = (raw: string, type: string, data?: any) => {
 				let refCount = 0;
 
 				// Loop through array and convert to data objects
+				let ateCount = -1;
+				let drankCount = -1;
+				let checkinCount = -1;
 				formatted = formatted.map((item: string) => {
 					if (item.match(/^</)) {
 						// Handle footnotes
@@ -35,32 +38,39 @@ export const formatContent = (raw: string, type: string, data?: any) => {
 					} else {
 						const dataCheck = item.replace(/\s/g, "").split("|");
 
-						switch (dataCheck[0]) {
+						// TODO: Add ability to use either provided index or inc. counts
+						// TODO: Remove dataCheck[0] once all Journal entries are standardised
+						switch (dataCheck[0] || item) {
 							case "ate":
+								ateCount++;
 								return {
 									type: "ate",
-									data: data.food[Number(dataCheck[1]) - 1],
+									data: data.checkins.ate[ateCount],
 								};
 							case "attended":
+								checkinCount++;
 								return {
 									type: "event",
-									data: data.checkins[Number(dataCheck[1]) - 1],
+									data: data.checkins.events[checkinCount],
 								};
 							case "drank":
+								drankCount++;
 								return {
 									type: "drank",
-									data: data.food[Number(dataCheck[1]) - 1],
+									data: data.checkins.drank[drankCount],
 								};
 							case "travelled":
 							case "traveled":
+								checkinCount++;
 								return {
 									type: "travel",
-									data: data.checkins[Number(dataCheck[1]) - 1],
+									data: data.checkins.travels[checkinCount],
 								};
 							case "visited":
+								checkinCount++;
 								return {
 									type: "visit",
-									data: data.checkins[Number(dataCheck[1]) - 1],
+									data: data.checkins.visits[checkinCount],
 								};
 							default:
 								if (!item || item.length < 1 || item === " ") {
