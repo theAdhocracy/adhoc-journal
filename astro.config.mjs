@@ -19,4 +19,7 @@ export default defineConfig({
 	output: "server",
 	adapter: adapter,
 	base: "/journal",
+	security: {
+		checkOrigin: false
+	}
 });
