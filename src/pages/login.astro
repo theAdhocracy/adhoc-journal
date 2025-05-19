@@ -48,8 +48,8 @@ if (Astro.request.method === "POST") {
 				sameSite: "strict",
 				httpOnly: true,
 				secure: true,
-				path: "/journal",
-				domain: Astro.url.hostname,
+				path: "/",
+				domain: import.meta.env.SITE_DOMAIN,
 				maxAge: 86400000 * 90, // 90 days in milliseconds
 				encode: String,
 			});
