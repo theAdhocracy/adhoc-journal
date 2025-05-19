@@ -1,5 +1,5 @@
 ---
-import { ViewTransitions } from "astro:transitions";
+import { ClientRouter } from "astro:transitions";
 
 import "@/styles/reset.css";
 import "@/styles/utility.css";
@@ -39,12 +39,13 @@ const { title, hasMap = false, hasTransitions = false } = Astro.props;
 						src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 						integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
 						crossorigin=""
+						is:inline
 					/>
 				</>
 			)
 		}
 		<title>{title}</title>
-		{hasTransitions && <ViewTransitions />}
+		{hasTransitions && <ClientRouter />}
 	</head>
 	<body>
 		<header>
