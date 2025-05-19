@@ -45,7 +45,7 @@ if (Astro.request.method === "POST") {
 
 			Astro.cookies.set("auth", authLevel, {
 				expires: expirationDate,
-				sameSite: "strict",
+				sameSite: "none",
 				httpOnly: true,
 				secure: true,
 				path: "/",
