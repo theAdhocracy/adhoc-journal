@@ -11,6 +11,20 @@ const validLevel1 = import.meta.env.AUTH_VALIDATION_1;
 const validLevel2 = import.meta.env.AUTH_VALIDATION_2;
 const errors = { password: "" };
 
+// Add CORS headers for cross-origin requests
+Astro.response.headers.set(
+	"Access-Control-Allow-Origin",
+	import.meta.env.CORS_ALLOWED_ORIGIN
+);
+Astro.response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+Astro.response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+
+// Handle preflight requests
+if (Astro.request.method === "OPTIONS") {
+	return new Response(null, { status: 204 });
+}
+
+// Handle form submission
 if (Astro.request.method === "POST") {
 	try {
 		// Retrieve form data
@@ -44,7 +58,7 @@ if (Astro.request.method === "POST") {
 
 			Astro.cookies.set("auth", authLevel, {
 				expires: expirationDate,
-				sameSite: "strict",
+				sameSite: "none",
 				httpOnly: true,
 				secure: true,
 				path: "/journal",
