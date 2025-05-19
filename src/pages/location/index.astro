@@ -109,19 +109,6 @@ let location = "";
 let filter = "";
 let error = "";
 
-// Add CORS headers for cross-origin requests
-Astro.response.headers.set(
-	"Access-Control-Allow-Origin",
-	import.meta.env.CORS_ALLOWED_ORIGIN
-);
-Astro.response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-Astro.response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-
-// Handle preflight requests
-if (Astro.request.method === "OPTIONS") {
-	return new Response(null, { status: 204 });
-}
-
 if (Astro.request.method === "POST") {
 	try {
 		// Extract data from form
