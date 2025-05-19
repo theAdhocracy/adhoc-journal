@@ -16,8 +16,7 @@ if (Astro.request.method === "POST") {
 		// Retrieve form data
 		const data = await Astro.request.formData();
 		const password = data.get("password");
-
-		console.log(password);
+		console.info("Login attempt initiated");
 
 		// Validate form data
 		if (typeof password !== "string" || password.length < 10) {
@@ -39,7 +38,7 @@ if (Astro.request.method === "POST") {
 
 		// Confirm log in
 		if (!isInvalid) {
-			console.log("Valid attempt");
+			console.info("Login attempt successful");
 			// NOTE: 86400000 is a single day in ms, so this is 90 days
 			const expirationDate = new Date(Date.now() + 86400000 * 90);
 
@@ -57,9 +56,7 @@ if (Astro.request.method === "POST") {
 				? Astro.redirect(`/journal?`)
 				: Astro.redirect(`/journal${redirect}?`);
 		} else {
-			console.log(errors);
-			console.log(validPassword1);
-			console.log(validPassword2);
+			console.error("Login attempt failed");
 			Astro.cookies.delete("auth");
 		}
 	} catch (error) {
