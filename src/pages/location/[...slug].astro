@@ -339,7 +339,7 @@ const { authLevel, lockDate } = checkAuth(
 															</time>
 															{checkin.duration && !checkin.duration.isDate && (
 																<time
-																	datetime={`${checkin.duration.end.date} ${checkin.duration.end.time}`}
+																	datetime={`${checkin.duration.end.html} ${checkin.duration.end.time}`}
 																>
 																	- {checkin.duration.end.time}
 																</time>
