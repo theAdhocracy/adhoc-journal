@@ -24,7 +24,7 @@ const { data, auth = 0 } = Astro.props;
 			{data.location.title}
 		</li>
 		{
-			data.route.map((stop: any, index: number) => {
+			data.route.map((stop: any) => {
 				if (stop.key !== "location") return;
 
 				return (

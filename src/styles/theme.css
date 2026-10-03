@@ -1,11 +1,12 @@
 :root {
 	/* Design Tokens */
 	--font-title: Georgia, Times, Times New Roman, serif;
-	--font-copy: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica,
-		Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
-	--font-emoji: "Segoe UI Emoji", "Twemoji Mozilla", "Apple Color Emoji",
-		"Segoe UI Symbol", "Noto Color Emoji", "EmojiOne Color", "Android Emoji",
-		sans-serif;
+	--font-copy:
+		-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial,
+		sans-serif, Apple Color Emoji, Segoe UI Emoji;
+	--font-emoji:
+		"Segoe UI Emoji", "Twemoji Mozilla", "Apple Color Emoji", "Segoe UI Symbol",
+		"Noto Color Emoji", "EmojiOne Color", "Android Emoji", sans-serif;
 
 	--lavender: #faf8fc;
 	--olivine: #a0c269;
@@ -90,7 +91,7 @@ html[data-theme="dark"] {
 body {
 	background-color: var(--c-bg);
 	font-family: var(--font-copy);
-	font-size: var(--font-size, --type-0);
+	font-size: var(--font-size, var(--type-0));
 	line-height: 1.7;
 	color: var(--c-text);
 }
@@ -108,7 +109,7 @@ h6 {
 	font-size: var(--type-1);
 	text-wrap: pretty;
 
-	& :is(time, span:not[class]) {
+	& :is(time, span:not([class])) {
 		font-size: var(--type--1);
 	}
 }

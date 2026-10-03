@@ -8,7 +8,7 @@ import { validDateRoute } from "@/utils/dateRoutes";
 // ISR cache
 Astro.response.headers.set(
 	"Cache-Control",
-	"public, max-age=86,400, s-maxage=2,592,000"
+	"public, max-age=86,400, s-maxage=2,592,000",
 );
 
 // Route parameters
@@ -24,7 +24,7 @@ if (!isValid || !year) {
 // Authenticated route
 const { authLevel, isDateLocked, lockDate } = checkAuth(
 	Astro.cookies.get("auth"),
-	`${year}/12/31`
+	`${year}/12/31`,
 );
 
 // Fetch page data
@@ -36,7 +36,7 @@ const data = await fetch(
 			"content-type": "application/json",
 			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
 		},
-	}
+	},
 );
 const response = await data.json();
 
@@ -109,7 +109,7 @@ const prevYear = currYear - 1;
 					const firstDay = new Date(
 						Number(month[0].date.year),
 						Number(month[0].date.month) - 1,
-						1
+						1,
 					).getDay();
 
 					return (
@@ -127,20 +127,20 @@ const prevYear = currYear - 1;
 								<li>S</li>
 							</ol>
 							<ol role="list">
-								{totalDays.map((day, index) => {
+								{totalDays.map((_, index) => {
 									const normalisedDay =
 										index >= 9 ? index + 1 : `0${index + 1}`;
 
 									// If date has related entry, highlight it
 									const dateEntry = month.find(
-										(entry: any) => entry.date.day === normalisedDay.toString()
+										(entry: any) => entry.date.day === normalisedDay.toString(),
 									);
 
 									// Check if date is locked
 									let isNotLocked = true;
 									if (authLevel < 1 && isDateLocked && dateEntry && lockDate) {
 										const fullDate = new Date(
-											`${dateEntry.date.year}/${dateEntry.date.month}/${dateEntry.date.day} 12:00`
+											`${dateEntry.date.year}/${dateEntry.date.month}/${dateEntry.date.day} 12:00`,
 										);
 
 										if (fullDate > lockDate) {
@@ -183,7 +183,7 @@ const prevYear = currYear - 1;
 										let isNotLocked = true;
 										if (authLevel < 1 && isDateLocked && lockDate) {
 											const fullDate = new Date(
-												`${day.date.year}/${day.date.month}/${day.date.day} 12:00`
+												`${day.date.year}/${day.date.month}/${day.date.day} 12:00`,
 											);
 
 											if (fullDate > lockDate) {
