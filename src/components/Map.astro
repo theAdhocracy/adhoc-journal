@@ -39,7 +39,7 @@ children?.forEach((child: any) =>
 			default:
 				filters.misc = true;
 		}
-	})
+	}),
 );
 
 const hasFilterContent =
@@ -180,7 +180,7 @@ const hasFilterContent =
 					interactive: false,
 					keyboard: false,
 				}).addTo(map);
-			})
+			}),
 		);
 
 		// Add a faux-marker to group, purely for calculation purposes
@@ -192,34 +192,34 @@ const hasFilterContent =
 	}
 </script>
 
-<script define:vars={{ hasFilters }} data-astro-rerun>
+<script define:vars={{ hasFilters }} data-astro-rerun is:inline>
 	// Do nothing if filters aren't enabled
-	if (!hasFilters) return;
+	if (hasFilters) {
+		// Function: Controls map marker filters
+		// Select all checkbox filters
+		const controls = document.querySelectorAll(
+			"fieldset > input[type='checkbox']",
+		);
 
-	// Function: Controls map marker filters
-	// Select all checkbox filters
-	const controls = document.querySelectorAll(
-		"fieldset > input[type='checkbox']"
-	);
+		// Assign event listeners
+		controls.forEach((control) =>
+			control.addEventListener("change", (event) => {
+				// Derive relevant markers based on name attribute (uses | for multiple options)
+				const selector = event.target.name
+					.split("|")
+					.map((key) => `.marker-${key}`)
+					.join(", ");
+				const markers = document.querySelectorAll(selector);
 
-	// Assign event listeners
-	controls.forEach((control) =>
-		control.addEventListener("change", (event) => {
-			// Derive relevant markers based on name attribute (uses | for multiple options)
-			const selector = event.target.name
-				.split("|")
-				.map((key) => `.marker-${key}`)
-				.join(", ");
-			const markers = document.querySelectorAll(selector);
-
-			// Toggle hidden state
-			if (event.target.checked) {
-				markers.forEach((marker) => marker.classList.remove("hide-marker"));
-			} else {
-				markers.forEach((marker) => marker.classList.add("hide-marker"));
-			}
-		})
-	);
+				// Toggle hidden state
+				if (event.target.checked) {
+					markers.forEach((marker) => marker.classList.remove("hide-marker"));
+				} else {
+					markers.forEach((marker) => marker.classList.add("hide-marker"));
+				}
+			}),
+		);
+	}
 </script>
 
 <style>
