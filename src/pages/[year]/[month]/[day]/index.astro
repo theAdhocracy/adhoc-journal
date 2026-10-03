@@ -152,12 +152,14 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 
 					{response.footnotes?.length > 0 && <h2>Footnotes</h2>}
 					{response.footnotes?.map((footnote: any, index: number) => {
+						const position = index + 1;
+
 						return (
-							<aside id={`footnote${index + 1}`} class="content | footnote">
-								<span>[{index + 1}]</span>
+							<aside id={`footnote${position}`} class="content | footnote">
+								<span>[{position}]</span>
 								<Redacted data={footnote} auth={authLevel} />
 								<a
-									href={`#reference${index + 1}`}
+									href={`#reference${position}`}
 									title="Return to previous location in article."
 									aria-label="Return to previous location in article."
 								>

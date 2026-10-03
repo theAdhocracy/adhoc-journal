@@ -8,7 +8,7 @@ import { standardiseMonth, validDateRoute } from "@/utils/dateRoutes";
 // ISR cache
 Astro.response.headers.set(
 	"Cache-Control",
-	"public, max-age=86,400, s-maxage=2,592,000"
+	"public, max-age=86,400, s-maxage=2,592,000",
 );
 
 // Route parameters
@@ -26,7 +26,7 @@ const date = {
 	month: new Date(
 		Number(year),
 		Number(standardiseMonth(month)) - 1,
-		1
+		1,
 	).toLocaleString("en-GB", { month: "long" }),
 	year: year,
 };
@@ -40,7 +40,7 @@ const api = await fetch(
 			"content-type": "application/json",
 			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
 		},
-	}
+	},
 );
 const response = await api.json();
 const { data } = response;
@@ -52,7 +52,7 @@ let daysOfMonth = data?.[0]?.monthTotal;
 const validDate = `${year}/${standardiseMonth(month)}/${daysOfMonth}`;
 const { authLevel, isDateLocked, lockDate } = checkAuth(
 	Astro.cookies.get("auth"),
-	validDate
+	validDate,
 );
 
 // Work out which results are date locked
@@ -71,17 +71,17 @@ if (isDateLocked && lockDate && authLevel < 1) {
 const currMonth = new Date(
 	Number(date.year),
 	Number(standardiseMonth(month)) - 1,
-	1
+	1,
 );
 const nextMonth = new Date(
 	currMonth.getFullYear(),
 	currMonth.getMonth() + 1,
-	1
+	1,
 );
 const prevMonth = new Date(
 	currMonth.getFullYear(),
 	currMonth.getMonth() - 1,
-	1
+	1,
 );
 
 // NOTE: months must be incremented to account for 0-index in JS
@@ -118,12 +118,12 @@ const prevCrumb = `${prevMonth.getFullYear()}/${prevMonth.getMonth() + 1}`;
 		{
 			daysOfMonth > 0 && (
 				<ul role="list" class="timeline">
-					{[...Array(daysOfMonth)].map((day, index) => {
+					{[...Array(daysOfMonth)].map((_, index) => {
 						const normalisedDay = index >= 9 ? index + 1 : `0${index + 1}`;
 
 						// If date has related entry, highlight it
 						const dateEntry = data.find(
-							(entry: any) => entry.date.day === normalisedDay.toString()
+							(entry: any) => entry.date.day === normalisedDay.toString(),
 						);
 
 						if (dateEntry) {
