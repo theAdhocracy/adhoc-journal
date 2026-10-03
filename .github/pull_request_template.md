@@ -4,4 +4,4 @@ Enter the core purpose for the PR e.g. updating dependencies or fixing bugs. Inc
 
 ## Changes
 
-- Bulleted list of actual changes made
+- **Instructions:** Bulleted list of actual changes made. Options include: Feature, Fix, Technical Debt, Docs etc.
