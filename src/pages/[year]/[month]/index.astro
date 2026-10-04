@@ -4,6 +4,7 @@ import StatsList from "@/fragments/StatsList.astro";
 import Layout from "@/layouts/Layout.astro";
 import { checkAuth } from "@/utils/auth";
 import { standardiseMonth, validDateRoute } from "@/utils/dateRoutes";
+import { getRequiredEnv } from "@/utils/env";
 
 // ISR cache
 Astro.response.headers.set(
@@ -38,7 +39,7 @@ const api = await fetch(
 		method: "GET",
 		headers: {
 			"content-type": "application/json",
-			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+			Authorization: `Bearer ${getRequiredEnv("CRAFT_API_KEY")}`,
 		},
 	},
 );

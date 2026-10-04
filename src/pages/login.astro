@@ -1,14 +1,15 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { getRequiredEnv } from "@/utils/env";
 
 const params = new URLSearchParams(Astro.url.searchParams);
 const referrer = params.get("path");
 
 // Handle Form Logic
-const validPassword1 = import.meta.env.AUTH_PASSWORD_1;
-const validPassword2 = import.meta.env.AUTH_PASSWORD_2;
-const validLevel1 = import.meta.env.AUTH_VALIDATION_1;
-const validLevel2 = import.meta.env.AUTH_VALIDATION_2;
+const validPassword1 = getRequiredEnv("AUTH_PASSWORD_1");
+const validPassword2 = getRequiredEnv("AUTH_PASSWORD_2");
+const validLevel1 = getRequiredEnv("AUTH_VALIDATION_1");
+const validLevel2 = getRequiredEnv("AUTH_VALIDATION_2");
 const errors = { password: "" };
 
 // Handle form submission
@@ -25,7 +26,7 @@ if (Astro.request.method === "POST") {
 		}
 
 		// Validate password value
-		let authLevel;
+		let authLevel = "";
 		if (password === validPassword1) {
 			authLevel = validLevel1;
 		} else if (password === validPassword2) {
@@ -38,7 +39,7 @@ if (Astro.request.method === "POST") {
 		const isInvalid = Object.values(errors).some((msg) => msg);
 
 		// Confirm log in
-		if (!isInvalid) {
+		if (!isInvalid && authLevel !== "") {
 			console.info("Login attempt successful");
 			// NOTE: 86400000 is a single day in ms, so this is 90 days
 			const expirationDate = new Date(Date.now() + 86400000 * 90);
@@ -49,7 +50,7 @@ if (Astro.request.method === "POST") {
 				httpOnly: true,
 				secure: true,
 				path: "/",
-				domain: import.meta.env.SITE_DOMAIN,
+				domain: getRequiredEnv("SITE_DOMAIN"),
 				maxAge: 86400000 * 90, // 90 days in milliseconds
 				encode: String,
 			});
