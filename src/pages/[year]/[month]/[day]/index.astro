@@ -10,6 +10,7 @@ import SpotList from "@/components/SpotList.astro";
 import { checkAuth } from "@/utils/auth";
 import { formatContent } from "@/utils/content";
 import { standardiseDateRoute, validDateRoute } from "@/utils/dateRoutes";
+import { getRequiredEnv } from "@/utils/env";
 
 // ISR cache
 Astro.response.headers.set(
@@ -58,7 +59,7 @@ const data = await fetch(
 		method: "GET",
 		headers: {
 			"content-type": "application/json",
-			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+			Authorization: `Bearer ${getRequiredEnv("CRAFT_API_KEY")}`,
 		},
 	}
 );

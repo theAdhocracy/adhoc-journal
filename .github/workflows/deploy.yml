@@ -1,0 +1,175 @@
+name: Build and deploy
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+
+concurrency:
+  group: adhoc-journal-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Astro Build
+    if: startsWith(github.event.release.tag_name, 'release-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.3
+          cache: npm
+
+      - name: Install build dependencies
+        run: npm ci
+
+      - name: Build Astro app
+        run: npm run build
+
+      - name: Upload deployment artifact
+        # Uploads the build output and package manifests to be downloaded in the next deploy job.
+        uses: actions/upload-artifact@v4
+        with:
+          name: astro-deployment
+          path: |
+            dist/
+            package.json
+            package-lock.json
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy to Production
+    needs: build
+    if: startsWith(github.event.release.tag_name, 'release-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download deployment artifact
+        # Downloads the build output and package manifests from the previous build job.
+        uses: actions/download-artifact@v4
+        with:
+          name: astro-deployment
+          path: deployment
+
+      - name: Configure SSH
+        # Creates SSH folder & files, in restricted mode, within the GitHub runner environment.
+        env:
+          KRYSTAL_SSH_PRIVATE_KEY: ${{ secrets.KRYSTAL_SSH_PRIVATE_KEY }}
+          KRYSTAL_SSH_KNOWN_HOSTS: ${{ secrets.KRYSTAL_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KRYSTAL_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$KRYSTAL_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+      - name: Create release directory
+        # Each release gets a dedicated folder in .deploy/releases; only once a release is fully transferred and verified does it get switched to.
+        env:
+          KRYSTAL_SSH_HOST: ${{ secrets.KRYSTAL_SSH_HOST }}
+          KRYSTAL_SSH_USER: ${{ secrets.KRYSTAL_SSH_USER }}
+          DEPLOY_ID: ${{ github.run_id }}
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes \
+            "$KRYSTAL_SSH_USER@$KRYSTAL_SSH_HOST" \
+            "mkdir -p '/home/theadhoc/adhoc-journal/.deploy/releases/$DEPLOY_ID/dist'"
+
+      - name: Upload build and package manifests
+        # Uploads the build output and package manifests to the release folder, replacing any existing files. Node modules are not required.
+        # The rsync options: -a preserves file details; -z compresses upload; -e configures SSH with private keys; --delete removes any files on the server that are no longer built.
+        env:
+          KRYSTAL_SSH_HOST: ${{ secrets.KRYSTAL_SSH_HOST }}
+          KRYSTAL_SSH_USER: ${{ secrets.KRYSTAL_SSH_USER }}
+          DEPLOY_ID: ${{ github.run_id }}
+        run: |
+          ssh_options="ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes"
+          rsync -az --delete -e "$ssh_options" deployment/dist/ \
+            "$KRYSTAL_SSH_USER@$KRYSTAL_SSH_HOST:/home/theadhoc/adhoc-journal/.deploy/releases/$DEPLOY_ID/dist/"
+          rsync -az -e "$ssh_options" deployment/package.json deployment/package-lock.json \
+            "$KRYSTAL_SSH_USER@$KRYSTAL_SSH_HOST:/home/theadhoc/adhoc-journal/"
+
+      - name: Promote release, restart app, and prune old releases
+        # 1. Connects to the Node app via SSH
+        # 2. Checks that the new release exists and has a valid Astro start file.
+        # 3. Compares the old and new lock file hashes, and installs npm dependencies if they have changed (or if node_modules is absent). This prevents npm install running when it isn't needed, to reduce server load.
+        # 4. Handles an Astro build that is still using the default dist folder, by moving this to a legacy-release folder and then symlinking the new build to dist.
+        # 5. Check the current symlink target for the dist (build) folder; confirm this uses an expected path format (e.g. release-UID).
+        # 6. Copy any cached assets from the previous release to the new release, to preserve active browser sessions (non-destructive).
+        # 7. Create a new symlink from the new release to the dist folder.
+        # 8. Run the app restart script (triggers cPanel's Passenger to restart the Node app).
+        # 9. Remove any old releases that are not the current or previous release,
+        env:
+          KRYSTAL_SSH_HOST: ${{ secrets.KRYSTAL_SSH_HOST }}
+          KRYSTAL_SSH_USER: ${{ secrets.KRYSTAL_SSH_USER }}
+          DEPLOY_ID: ${{ github.run_id }}
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes \
+            "$KRYSTAL_SSH_USER@$KRYSTAL_SSH_HOST" "DEPLOY_ID=$DEPLOY_ID bash -s" <<'REMOTE'
+          set -euo pipefail
+          source /home/theadhoc/nodevenv/adhoc-journal/22/bin/activate
+          cd /home/theadhoc/adhoc-journal
+
+          new_release=".deploy/releases/$DEPLOY_ID"
+          if [ ! -f "$new_release/dist/server/entry.mjs" ]; then
+            echo "Staged Astro entry point is missing: $new_release/dist/server/entry.mjs" >&2
+            exit 1
+          fi
+
+          lock_hash=$(sha256sum package-lock.json | cut -d ' ' -f 1)
+          saved_hash=$(cat .deploy-lock-hash 2>/dev/null || true)
+          if [ "$lock_hash" != "$saved_hash" ] || [ ! -d node_modules ]; then
+            npm ci --omit=dev
+            printf '%s\n' "$lock_hash" > .deploy-lock-hash
+          fi
+
+          if [ -d dist ] && [ ! -L dist ]; then
+            legacy_release="legacy-$DEPLOY_ID"
+            mkdir -p ".deploy/releases/$legacy_release"
+            mv dist ".deploy/releases/$legacy_release/dist"
+            ln -s ".deploy/releases/$legacy_release/dist" dist
+          elif [ -e dist ] && [ ! -L dist ]; then
+            echo "The app's dist path exists but is not a directory or symlink." >&2
+            exit 1
+          fi
+
+          previous_id=""
+          if [ -L dist ]; then
+            previous_target=$(readlink dist)
+            case "$previous_target" in
+              .deploy/releases/*/dist)
+                previous_id=${previous_target#".deploy/releases/"}
+                previous_id=${previous_id%"/dist"}
+                ;;
+              *)
+                echo "Unexpected dist symlink target: $previous_target" >&2
+                exit 1
+                ;;
+            esac
+          fi
+
+            if [ -n "$previous_id" ] && [ -d ".deploy/releases/$previous_id/dist/client/_astro" ]; then
+              mkdir -p "$new_release/dist/client/_astro"
+              cp -an ".deploy/releases/$previous_id/dist/client/_astro/." "$new_release/dist/client/_astro/"
+            fi
+
+          next_link=".dist-next-$DEPLOY_ID"
+          rm -f "$next_link"
+          ln -s "$new_release/dist" "$next_link"
+          mv -Tf "$next_link" dist
+
+          mkdir -p tmp
+          touch tmp/restart.txt
+
+          for release in .deploy/releases/*; do
+            [ -d "$release" ] || continue
+            release_id=${release##*/}
+            if [ "$release_id" != "$DEPLOY_ID" ] && [ "$release_id" != "$previous_id" ]; then
+              rm -rf -- "$release"
+            fi
+          done
+          REMOTE

@@ -7,6 +7,7 @@ import People from "@/fragments/People.astro";
 import StatsList from "@/fragments/StatsList.astro";
 import { getStarRating } from "@/utils/content";
 import { checkAuth } from "@/utils/auth";
+import { getRequiredEnv } from "@/utils/env";
 
 type Location = {
 	id: number;
@@ -72,9 +73,9 @@ const data = await fetch(
 		method: "GET",
 		headers: {
 			"content-type": "application/json",
-			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+			Authorization: `Bearer ${getRequiredEnv("CRAFT_API_KEY")}`,
 		},
-	}
+	},
 );
 const response: Location = await data.json();
 
@@ -98,7 +99,7 @@ const {
 const today = new Date();
 const { authLevel, lockDate } = checkAuth(
 	Astro.cookies.get("auth"),
-	today.toString()
+	today.toString(),
 );
 
 // TODO: Link drink results to pub subdomain ???
@@ -117,7 +118,7 @@ const { authLevel, lockDate } = checkAuth(
 							// Get subset of URI for href
 							const path = uri.substring(
 								0,
-								uri.indexOf(fragment) + fragment.length
+								uri.indexOf(fragment) + fragment.length,
 							);
 
 							// Specific location formatting

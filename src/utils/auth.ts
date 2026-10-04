@@ -1,3 +1,5 @@
+import { getRequiredEnv } from "@/utils/env";
+
 export const checkAuth = (cookie: any, dateToCheck?: string) => {
 	let isAuthenticated = false;
 	let isDateLocked = null;
@@ -5,8 +7,8 @@ export const checkAuth = (cookie: any, dateToCheck?: string) => {
 	let authLevel = 0;
 
 	// Check against validation token
-	const validLevel1 = import.meta.env.AUTH_VALIDATION_1;
-	const validLevel2 = import.meta.env.AUTH_VALIDATION_2;
+	const validLevel1 = getRequiredEnv("AUTH_VALIDATION_1");
+	const validLevel2 = getRequiredEnv("AUTH_VALIDATION_2");
 
 	if (cookie) {
 		isAuthenticated =

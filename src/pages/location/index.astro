@@ -3,6 +3,7 @@ import Layout from "@/layouts/Layout.astro";
 import Map from "@/components/Map.astro";
 import LineGraph from "@/components/LineGraph.astro";
 import StatsList from "@/fragments/StatsList.astro";
+import { getRequiredEnv } from "@/utils/env";
 
 // Fetch initial data
 const countryAPI = await fetch(
@@ -11,9 +12,9 @@ const countryAPI = await fetch(
 		method: "GET",
 		headers: {
 			"content-type": "application/json",
-			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+			Authorization: `Bearer ${getRequiredEnv("CRAFT_API_KEY")}`,
 		},
-	}
+	},
 );
 const countries = await countryAPI.json();
 const homeData = countries.data.splice(0, 1).pop();
@@ -36,9 +37,9 @@ const statsAPI = await fetch(
 		method: "GET",
 		headers: {
 			"content-type": "application/json",
-			Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+			Authorization: `Bearer ${getRequiredEnv("CRAFT_API_KEY")}`,
 		},
-	}
+	},
 );
 const stats = await statsAPI.json();
 
@@ -132,9 +133,9 @@ if (Astro.request.method === "POST") {
 				method: "GET",
 				headers: {
 					"content-type": "application/json",
-					Authorization: `Bearer ${import.meta.env.CRAFT_API_KEY}`,
+					Authorization: `Bearer ${getRequiredEnv("CRAFT_API_KEY")}`,
 				},
-			}
+			},
 		);
 		const response = await api.json();
 		searchData = response.data;
