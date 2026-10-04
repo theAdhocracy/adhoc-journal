@@ -61,12 +61,25 @@ jobs:
         # Creates SSH folder & files, in restricted mode, within the GitHub runner environment.
         env:
           KRYSTAL_SSH_PRIVATE_KEY: ${{ secrets.KRYSTAL_SSH_PRIVATE_KEY }}
+          KRYSTAL_SSH_KEY_PASSPHRASE: ${{ secrets.KRYSTAL_SSH_KEY_PASSPHRASE }}
           KRYSTAL_SSH_KNOWN_HOSTS: ${{ secrets.KRYSTAL_SSH_KNOWN_HOSTS }}
         run: |
           install -m 700 -d ~/.ssh
           printf '%s\n' "$KRYSTAL_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           printf '%s\n' "$KRYSTAL_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+          printf '%s\n' '#!/bin/sh' 'printf "%s\n" "$KRYSTAL_SSH_KEY_PASSPHRASE"' > ~/.ssh/askpass
+          chmod 700 ~/.ssh/askpass
+
+          eval "$(ssh-agent -s)"
+          printf 'SSH_AUTH_SOCK=%s\n' "$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+          printf 'SSH_AGENT_PID=%s\n' "$SSH_AGENT_PID" >> "$GITHUB_ENV"
+          export SSH_ASKPASS="$HOME/.ssh/askpass"
+          export SSH_ASKPASS_REQUIRE=force
+          export DISPLAY=:0
+          ssh-add ~/.ssh/id_ed25519 </dev/null
+          rm -f ~/.ssh/askpass
 
       - name: Create release directory
         # Each release gets a dedicated folder in .deploy/releases; only once a release is fully transferred and verified does it get switched to.
