@@ -80,7 +80,7 @@ const data = await fetch(
 const response: Location = await data.json();
 
 if (response.error) {
-	return Astro.redirect("/journal/404");
+	return Astro.redirect("/404");
 }
 
 const {
@@ -131,7 +131,7 @@ const { authLevel, lockDate } = checkAuth(
 								return (
 									<li>
 										<a
-											href={`/journal/${path}`}
+											href={`/${path}`}
 											aria-label="Locations"
 											title="Locations"
 										>
@@ -146,7 +146,7 @@ const { authLevel, lockDate } = checkAuth(
 
 							return (
 								<li>
-									<a href={`/journal/${path}`}>{crumb}</a>
+									<a href={`/${path}`}>{crumb}</a>
 									{index !== breadcrumbs.length - 1 && (
 										<span aria-hidden="true"> / </span>
 									)}
@@ -199,7 +199,7 @@ const { authLevel, lockDate } = checkAuth(
 								return (
 									<li>
 										<h3>
-											<a href={`/journal/${day.uri}`}>
+											<a href={`/${day.uri}`}>
 												<time datetime={day.date}>{day.title}</time>
 											</a>
 										</h3>
@@ -367,7 +367,7 @@ const { authLevel, lockDate } = checkAuth(
 						{children.map((location) => {
 							return (
 								<li>
-									<a href={`/journal/${location.uri}`}>{location.title}</a>
+									<a href={`/${location.uri}`}>{location.title}</a>
 								</li>
 							);
 						})}

@@ -53,11 +53,11 @@ const { title, hasMap = false, hasTransitions = false } = Astro.props;
 				<ul role="list">
 					<li><a href="/">Home</a></li>
 					<li>
-						<a href={`/journal/${new Date().getFullYear()}`}> Journal </a>
+						<a href={`/${new Date().getFullYear()}`}> Journal </a>
 					</li>
-					<li><a href="/journal/location">Locations</a></li>
+					<li><a href="/location">Locations</a></li>
 					<li>
-						<a href={`/journal/login?path=${Astro.url.pathname}`}>Login</a>
+						<a href={`/login?path=${Astro.url.pathname}`}>Login</a>
 					</li>
 				</ul>
 			</nav>

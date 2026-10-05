@@ -227,7 +227,7 @@ if (Astro.request.method === "POST") {
 											hasLandmark ? `marker-${result.type[0]}` : "marker-child"
 										}
 									>
-										<a href={`/journal/${result.uri}`}>{result.title}</a>
+										<a href={`/${result.uri}`}>{result.title}</a>
 									</li>
 								);
 							})}
