@@ -126,8 +126,9 @@ jobs:
           ssh -p 722 \
             -o MACs=hmac-sha2-256-etm@openssh.com -o Ciphers=aes256-ctr \
             "$KRYSTAL_SSH_USER@$KRYSTAL_SSH_HOST" "DEPLOY_ID=$DEPLOY_ID bash -s" <<'REMOTE'
-          set -euo pipefail
+          set -eo pipefail
           source /home/theadhoc/nodevenv/adhoc-journal/22/bin/activate
+          set -u
           cd /home/theadhoc/adhoc-journal
 
           new_release=".deploy/releases/$DEPLOY_ID"
