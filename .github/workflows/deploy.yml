@@ -89,6 +89,7 @@ jobs:
           DEPLOY_ID: ${{ github.run_id }}
         run: |
           ssh -p 722 -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes \
+            -o MACs=hmac-sha2-256-etm@openssh.com -o Ciphers=aes256-ctr \
             "$KRYSTAL_SSH_USER@$KRYSTAL_SSH_HOST" \
             "mkdir -p '/home/theadhoc/adhoc-journal/.deploy/releases/$DEPLOY_ID/dist'"
 
@@ -100,7 +101,7 @@ jobs:
           KRYSTAL_SSH_USER: ${{ secrets.KRYSTAL_SSH_USER }}
           DEPLOY_ID: ${{ github.run_id }}
         run: |
-          ssh_options="ssh -p 722 -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes"
+          ssh_options="ssh -p 722 -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o MACs=hmac-sha2-256-etm@openssh.com -o Ciphers=aes256-ctr"
           rsync -az --delete -e "$ssh_options" deployment/dist/ \
             "$KRYSTAL_SSH_USER@$KRYSTAL_SSH_HOST:/home/theadhoc/adhoc-journal/.deploy/releases/$DEPLOY_ID/dist/"
           rsync -az -e "$ssh_options" deployment/package.json deployment/package-lock.json \
@@ -122,6 +123,7 @@ jobs:
           DEPLOY_ID: ${{ github.run_id }}
         run: |
           ssh -p 722 -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes \
+            -o MACs=hmac-sha2-256-etm@openssh.com -o Ciphers=aes256-ctr \
             "$KRYSTAL_SSH_USER@$KRYSTAL_SSH_HOST" "DEPLOY_ID=$DEPLOY_ID bash -s" <<'REMOTE'
           set -euo pipefail
           source /home/theadhoc/nodevenv/adhoc-journal/22/bin/activate
