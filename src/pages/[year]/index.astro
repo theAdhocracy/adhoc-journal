@@ -19,7 +19,7 @@ const { year } = Astro.params;
 const isValid = validDateRoute(year);
 
 if (!isValid || !year) {
-	return Astro.redirect("/journal/404");
+	return Astro.redirect("/404");
 }
 
 // Authenticated route
@@ -72,11 +72,11 @@ const prevYear = currYear - 1;
 	<main>
 		<header>
 			<nav class="pagination" aria-label="Breadcrumb">
-				<a href={`/journal/${prevYear}`}>
+				<a href={`/${prevYear}`}>
 					<span aria-hidden="true">⬅</span> Prev
 				</a>
 				<span aria-hidden="true"> / </span>
-				<a href={`/journal/${nextYear}`}>
+				<a href={`/${nextYear}`}>
 					Next <span aria-hidden="true">➡</span>
 				</a>
 			</nav>
@@ -97,8 +97,8 @@ const prevYear = currYear - 1;
 				isDateLocked && authLevel < 1 && (
 					<p>
 						You may need to{" "}
-						<a href={`/journal/login?path=${Astro.url.pathname}`}>log in</a> to
-						see all entries.
+						<a href={`/login?path=${Astro.url.pathname}`}>log in</a> to see all
+						entries.
 					</p>
 				)
 			}
@@ -115,7 +115,7 @@ const prevYear = currYear - 1;
 
 					return (
 						<section class="calendar-leaf" data-month={month[0].date.month}>
-							<a href={`/journal/${year}/${month[0].date.month}`}>
+							<a href={`/${year}/${month[0].date.month}`}>
 								<h2>{month[0].date.monthName}</h2>
 							</a>
 							<ol role="list">
@@ -157,7 +157,7 @@ const prevYear = currYear - 1;
 												]}
 											>
 												<a
-													href={`/journal/${dateEntry.date.year}/${dateEntry.date.month}/${dateEntry.date.day}`}
+													href={`/${dateEntry.date.year}/${dateEntry.date.month}/${dateEntry.date.day}`}
 												>
 													{normalisedDay}
 												</a>
@@ -197,7 +197,7 @@ const prevYear = currYear - 1;
 												<li>
 													<span>{day.date.day}</span>
 													<a
-														href={`/journal/${day.date.year}/${day.date.month}/${day.date.day}`}
+														href={`/${day.date.year}/${day.date.month}/${day.date.day}`}
 													>
 														<h3>{day.title}</h3>
 													</a>

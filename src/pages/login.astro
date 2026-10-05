@@ -55,12 +55,16 @@ if (Astro.request.method === "POST") {
 				encode: String,
 			});
 
-			// Development environment fix (due to hosting at a subdirectory)
-			const redirect = referrer?.replace(/^\/journal/, "");
+			// Return to original page
+			const requestedUrl = referrer ? new URL(referrer, Astro.url) : Astro.url;
+			const redirect =
+				requestedUrl.origin === Astro.url.origin
+					? requestedUrl.pathname.replace(/^\/journal(?=\/|$)/, "") +
+						requestedUrl.search +
+						requestedUrl.hash
+					: "/";
 
-			return !redirect
-				? Astro.redirect(`/journal?`)
-				: Astro.redirect(`/journal${redirect}?`);
+			return Astro.redirect(redirect || "/");
 		} else {
 			console.error("Login attempt failed");
 			Astro.cookies.delete("auth");

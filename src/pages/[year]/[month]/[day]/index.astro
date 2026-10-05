@@ -15,7 +15,7 @@ import { getRequiredEnv } from "@/utils/env";
 // ISR cache
 Astro.response.headers.set(
 	"Cache-Control",
-	"public, max-age=86,400, s-maxage=2,592,000"
+	"public, max-age=86,400, s-maxage=2,592,000",
 );
 
 // Route parameters
@@ -25,14 +25,14 @@ const { year, month, day } = Astro.params;
 const isValid = validDateRoute(year, month, day);
 
 if (!isValid || !day || !month || !year) {
-	return Astro.redirect("/journal/404");
+	return Astro.redirect("/404");
 }
 
 // Standardise date
 const apiDate = standardiseDateRoute(
 	day as string,
 	month as string,
-	year as string
+	year as string,
 );
 const contentDate = new Date(apiDate).toLocaleDateString("en-GB", {
 	day: "numeric",
@@ -43,13 +43,13 @@ const contentDate = new Date(apiDate).toLocaleDateString("en-GB", {
 // Authentication
 let { isAuthenticated, authLevel, isDateLocked } = checkAuth(
 	Astro.cookies.get("auth"),
-	apiDate
+	apiDate,
 );
 
 // Otherwise check authentication & require log in
 if (!isAuthenticated && isDateLocked) {
 	const currentPath = Astro.url.pathname;
-	return Astro.redirect(`/journal/login?path=${currentPath}`);
+	return Astro.redirect(`/login?path=${currentPath}`);
 }
 
 // Fetch page data
@@ -61,7 +61,7 @@ const data = await fetch(
 			"content-type": "application/json",
 			Authorization: `Bearer ${getRequiredEnv("CRAFT_API_KEY")}`,
 		},
-	}
+	},
 );
 const response = await data.json();
 
@@ -88,8 +88,8 @@ if (!response.error) {
 	const prevDay = new Date(currDate.setDate(currDate.getDate() - 2)); // NOTE: -2 as we increment date by 1 in prior statement
 
 	// NOTE: months must be incremented to account for 0-index in JS
-	nextCrumb = `/journal/${nextDay.getFullYear()}/${nextDay.getMonth() + 1}/${nextDay.getDate()}`;
-	prevCrumb = `/journal/${prevDay.getFullYear()}/${prevDay.getMonth() + 1}/${prevDay.getDate()}`;
+	nextCrumb = `/${nextDay.getFullYear()}/${nextDay.getMonth() + 1}/${nextDay.getDate()}`;
+	prevCrumb = `/${prevDay.getFullYear()}/${prevDay.getMonth() + 1}/${prevDay.getDate()}`;
 }
 
 // Readable month
@@ -110,9 +110,9 @@ const currMonth = new Date(apiDate).toLocaleDateString("en-GB", {
 				)
 			}
 			<span aria-hidden="true">/</span>
-			<a href={`/journal/${year}`}>{year}</a>
+			<a href={`/${year}`}>{year}</a>
 			<span aria-hidden="true">/</span>
-			<a href={`/journal/${year}/${month}`}>{currMonth}</a>
+			<a href={`/${year}/${month}`}>{currMonth}</a>
 			<span aria-hidden="true">/</span>
 			{
 				nextCrumb && (

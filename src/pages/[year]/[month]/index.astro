@@ -19,7 +19,7 @@ const { year, month } = Astro.params;
 const isValid = validDateRoute(year, month);
 
 if (!isValid || !month) {
-	return Astro.redirect("/journal/404");
+	return Astro.redirect("/404");
 }
 
 // Standardise date
@@ -93,13 +93,13 @@ const prevCrumb = `${prevMonth.getFullYear()}/${prevMonth.getMonth() + 1}`;
 <Layout title={`${date.month} ${date.year}`}>
 	<main>
 		<nav class="pagination" aria-label="Breadcrumbs">
-			<a href={`/journal/${prevCrumb}`}>
+			<a href={`/${prevCrumb}`}>
 				<span aria-hidden="true">⬅</span> Prev
 			</a>
 			<span aria-hidden="true">/</span>
-			<a href={`/journal/${date.year}`}>{date.year}</a>
+			<a href={`/${date.year}`}>{date.year}</a>
 			<span aria-hidden="true">/</span>
-			<a href={`/journal/${nextCrumb}`}>
+			<a href={`/${nextCrumb}`}>
 				Next <span aria-hidden="true">➡</span>
 			</a>
 		</nav>
@@ -111,8 +111,8 @@ const prevCrumb = `${prevMonth.getFullYear()}/${prevMonth.getMonth() + 1}`;
 			isDateLocked && authLevel < 1 && (
 				<p>
 					You may need to{" "}
-					<a href={`/journal/login?path=${Astro.url.pathname}`}>log in</a> to
-					see all entries.
+					<a href={`/login?path=${Astro.url.pathname}`}>log in</a> to see all
+					entries.
 				</p>
 			)
 		}
@@ -145,7 +145,7 @@ const prevCrumb = `${prevMonth.getFullYear()}/${prevMonth.getMonth() + 1}`;
 								<li>
 									<p>{normalisedDay}</p>
 									<article>
-										<a href={`/journal/${url}`}>
+										<a href={`/${url}`}>
 											<h2>{title}</h2>
 										</a>
 										{copy !== null && <Redacted data={copy} auth={authLevel} />}
